@@ -1,0 +1,227 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015 Peter Grenby
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+package se.grenby.kollo.ctof;
+
+import se.grenby.kollo.allocator.ByteBlockAllocationReader;
+
+import java.nio.charset.StandardCharsets;
+
+import static se.grenby.kollo.ctof.CtofConstants.*;
+
+/**
+ * Created by peteri on 30/01/16.
+ */
+public abstract class CtofDataObject {
+    private static final char[] HEXES = "0123456789ABCDEF".toCharArray();
+
+    protected final ByteBlockAllocationReader blockReader;
+    protected final int blockPointer;
+    protected final int startBlockPosition;
+    protected int blockPosition;
+
+    CtofDataObject(ByteBlockAllocationReader block, int blockPointer, int position) {
+        this.blockReader = block;
+        this.blockPointer = blockPointer;
+        this.startBlockPosition = position;
+        this.blockPosition = position;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < blockReader.getAllocatedSize(blockPointer); i++) {
+            byte b = blockReader.getByte(blockPointer, i);
+            sb.append(HEXES[(b & 0xff) >>> 4]);
+            sb.append(HEXES[(b & 0xf)]);
+            sb.append(" ");
+        }
+        return sb.toString();
+    }
+
+    protected <T> T getValue(Class<T> klass, int valueType) {
+        T value;
+        if (valueType == BYTE_VALUE) {
+            value = klass.cast(blockReader.getByte(blockPointer, blockPosition));
+            blockPosition += Byte.BYTES;
+        } else if (valueType == SHORT_VALUE) {
+            value = klass.cast(blockReader.getShort(blockPointer, blockPosition));
+            blockPosition += Short.BYTES;
+        } else if (valueType == INTEGER_VALUE) {
+            value = klass.cast(blockReader.getInt(blockPointer, blockPosition));
+            blockPosition += Integer.BYTES;
+        } else if (valueType == LONG_VALUE) {
+            value = klass.cast(blockReader.getLong(blockPointer, blockPosition));
+            blockPosition += Long.BYTES;
+        } else if (valueType == STRING_VALUE) {
+            value = klass.cast(getStringFromByteBuffer());
+        } else if (valueType == FLOAT_VALUE) {
+            value = klass.cast(blockReader.getFloat(blockPointer, blockPosition));
+            blockPosition += Float.BYTES;
+        } else if (valueType == DOUBLE_VALUE) {
+            value = klass.cast(blockReader.getDouble(blockPointer, blockPosition));
+            blockPosition += Double.BYTES;
+        } else {
+            throw new RuntimeException("Value type " + valueType + " is unknown.");
+        }
+        return value;
+    }
+
+    protected void skipValueInByteBuffer() {
+        byte valueType = blockReader.getByte(blockPointer, blockPosition);
+        blockPosition += Byte.BYTES;
+        switch (valueType) {
+            case BYTE_VALUE:
+                blockPosition += Byte.BYTES;
+                break;
+            case SHORT_VALUE:
+                blockPosition += Short.BYTES;
+                break;
+            case INTEGER_VALUE:
+                blockPosition += Integer.BYTES;
+                break;
+            case LONG_VALUE:
+                blockPosition += Long.BYTES;
+                break;
+            case FLOAT_VALUE:
+                blockPosition += Float.BYTES;
+                break;
+            case DOUBLE_VALUE:
+                blockPosition += Double.BYTES;
+                break;
+            case MAP_VALUE:
+            case LIST_VALUE:
+                int mlLength = blockReader.getShort(blockPointer, blockPosition);
+                blockPosition += mlLength + Short.BYTES;
+                break;
+            case STRING_VALUE:
+                int stringLength = blockReader.getByte(blockPointer, blockPosition);
+                blockPosition += stringLength + Byte.BYTES;
+                break;
+            default:
+                throw new RuntimeException("Unknown value type " + valueType);
+        }
+    }
+
+    public void reconstruct() {
+        StringBuilder sb = new StringBuilder();
+
+        int structType = blockReader.getByte(blockPointer, blockPosition);
+        blockPosition += Byte.BYTES;
+        if (structType == MAP_VALUE) {
+            sb.append(extractMapValueFromByteBuffer());
+        } else if (structType == LIST_VALUE) {
+            sb.append(extractListValueFromByteBuffer());
+        }
+
+        System.out.println(sb.toString());
+    }
+
+    private String extractListValueFromByteBuffer() {
+        StringBuilder dst = new StringBuilder();
+        dst.append("[");
+
+        int listLength = blockReader.getShort(blockPointer, blockPosition);
+        blockPosition += Short.BYTES;
+        int listStart = blockPosition;
+        while (blockPosition < listStart + listLength) {
+            if (blockPosition > listStart + Short.BYTES)
+                dst.append(", ");
+            dst.append(extractValueFromByteBuffer());
+        }
+
+        dst.append("]");
+        return dst.toString();
+    }
+
+    private String extractMapValueFromByteBuffer() {
+        StringBuilder dst = new StringBuilder();
+
+        int mapLength = blockReader.getShort(blockPointer, blockPosition);
+        blockPosition += Short.BYTES;
+        int mapStart = blockPosition;
+        while (blockPosition < mapStart + mapLength) {
+            dst.append(getStringFromByteBuffer());
+            dst.append(" : ");
+            dst.append(extractValueFromByteBuffer());
+            dst.append("\n");
+        }
+
+        return dst.toString();
+    }
+
+    private String extractValueFromByteBuffer() {
+        StringBuilder dst = new StringBuilder();
+
+        byte valueType = blockReader.getByte(blockPointer, blockPosition);
+        blockPosition += Byte.BYTES;
+        switch (valueType) {
+            case MAP_VALUE:
+                dst.append(extractMapValueFromByteBuffer());
+                break;
+            case LIST_VALUE:
+                dst.append(extractListValueFromByteBuffer());
+                break;
+            case BYTE_VALUE:
+                dst.append(blockReader.getByte(blockPointer, blockPosition));
+                blockPosition += Byte.BYTES;
+                break;
+            case SHORT_VALUE:
+                dst.append(blockReader.getShort(blockPointer, blockPosition));
+                blockPosition += Short.BYTES;
+                break;
+            case INTEGER_VALUE:
+                dst.append(blockReader.getInt(blockPointer, blockPosition));
+                blockPosition += Integer.BYTES;
+                break;
+            case LONG_VALUE:
+                dst.append(blockReader.getLong(blockPointer, blockPosition));
+                blockPosition += Long.BYTES;
+                break;
+            case FLOAT_VALUE:
+                dst.append(blockReader.getFloat(blockPointer, blockPosition));
+                blockPosition += Float.BYTES;
+                break;
+            case DOUBLE_VALUE:
+                dst.append(blockReader.getDouble(blockPointer, blockPosition));
+                blockPosition += Double.BYTES;
+                break;
+            case STRING_VALUE:
+                dst.append(getStringFromByteBuffer());
+                break;
+            default:
+                dst.append("(" + valueType + ")");
+        }
+
+        return dst.toString();
+    }
+
+    protected String getStringFromByteBuffer() {
+        int length = blockReader.getByte(blockPointer, blockPosition);
+        blockPosition += Byte.BYTES;
+        byte[] bs = blockReader.getBytes(blockPointer, blockPosition, length);
+        blockPosition += length;
+        return new String(bs, StandardCharsets.UTF_8);
+    }
+
+}
