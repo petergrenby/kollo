@@ -23,6 +23,9 @@
  */
 package se.grenby.kollo.ctof;
 
+import se.grenby.kollo.json.JsonDataList;
+import se.grenby.kollo.json.JsonDataMap;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -34,19 +37,22 @@ import static se.grenby.kollo.ctof.CtofConstants.*;
  */
 public class CtofBuilder {
 
+    private static final int MAX_BYTES_CTOF_OBJECT = Short.MAX_VALUE;
+    private static ThreadLocal<ByteBuffer> buffers = new ThreadLocal<>();
+
     public static ByteBuffer buildBPSon(JsonDataMap map) {
-        ByteBuffer by = ByteBuffer.allocate(1024);
+        ByteBuffer buffer = buffers.get();
+        if (buffer == null) {
+            buffer = ByteBuffer.allocate(MAX_BYTES_CTOF_OBJECT);
+            buffers.set(buffer);
+        }
+        buffer.reset();
 
-        buildBPsonMap(by, map);
-        by.flip();
+        buildBPsonMap(buffer, map);
+        buffer.flip();
 
-        return by;
+        return buffer;
     }
-
-//    public static CtofDataMap buildBPSonDataMap(JsonDataMap map) {
-//        ByteBuffer by = buildBPSon(map);
-//        return new CtofDataMap(by);
-//    }
 
     private static void buildBPsonMap(ByteBuffer dst, JsonDataMap map) {
         dst.put(MAP_VALUE);
