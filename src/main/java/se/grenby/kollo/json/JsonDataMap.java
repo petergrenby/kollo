@@ -30,56 +30,87 @@ import java.util.Set;
 /**
  * Created by peteri on 10/12/15.
  */
-public class JsonDataMap {
-
-    private Map<String, Object> map = new HashMap<>();
+public class JsonDataMap extends HashMap<String, Object> {
 
     public JsonDataMap putByte(String key, byte value) {
-        map.put(key, value);
+        put(key, value);
         return this;
     }
 
     public JsonDataMap putShort(String key, short value) {
-        map.put(key, value);
+        put(key, value);
         return this;
     }
 
     public JsonDataMap putInt(String key, int value) {
-        map.put(key, value);
+        put(key, value);
         return this;
     }
 
     public JsonDataMap putLong(String key, long value) {
-        map.put(key, value);
+        put(key, value);
         return this;
     }
 
     public JsonDataMap putString(String key, String value) {
-        map.put(key, value);
+        put(key, value);
         return this;
     }
 
     public JsonDataMap putFloat(String key, float value) {
-        map.put(key, value);
+        put(key, value);
         return this;
     }
 
     public JsonDataMap putDouble(String key, double value) {
-        map.put(key, value);
+        put(key, value);
         return this;
     }
 
     public JsonDataMap putMap(String key, JsonDataMap value) {
-        map.put(key, value);
+        put(key, value);
         return this;
     }
 
     public JsonDataMap putList(String key, JsonDataList value) {
-        map.put(key, value);
+        put(key, value);
         return this;
     }
 
-    public Set<Map.Entry<String, Object>> hej() {
-        return map.entrySet();
+    public byte getByte(String key) {
+        return (byte) get(key);
     }
+
+
+    public short getShort(String key) {
+        return (short) get(key);
+    }
+
+
+    public int getInteger(String key) {
+        return (Integer) get(key);
+    }
+
+
+    public long getLong(String key) {
+        return (byte) get(key);
+    }
+
+
+    public float getFloat(String key) {
+        return (float) get(key);
+    }
+
+    public double getDouble(String key) {
+        return (double) get(key);
+    }
+
+    public JsonDataMap getMap(String key) {
+        return (JsonDataMap) get(key);
+    }
+
+    public JsonDataList getList(String key) {
+        return (JsonDataList) get(key);
+    }
+
 }

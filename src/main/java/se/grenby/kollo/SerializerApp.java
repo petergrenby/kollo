@@ -27,6 +27,8 @@ import se.grenby.kollo.allocator.ByteBlockAllocator;
 import se.grenby.kollo.ctof.*;
 import se.grenby.kollo.ctof.CtofDataList;
 import se.grenby.kollo.ctof.CtofDataMap;
+import se.grenby.kollo.json.JsonDataList;
+import se.grenby.kollo.json.JsonDataMap;
 
 import java.nio.ByteBuffer;
 
@@ -51,7 +53,7 @@ public class SerializerApp {
         jdm2.putString("st2", "we dooo2").putString("st3", "we dooo3");
         jdm.putMap("map", jdm2);
 
-        ByteBuffer buffer = CtofBuilder.buildBPSon(jdm);
+        ByteBuffer buffer = CtofBuilder.buildCtof(jdm);
         ByteBlockAllocator allocator = new ByteBlockAllocator(1024*10);
         int blockPointer = allocator.allocateAndClone(buffer);
         CtofDataMap bpo = new CtofDataMap(allocator, blockPointer);
@@ -83,8 +85,11 @@ public class SerializerApp {
 
         System.out.println(allocator.memStructureToString());
 
+        JsonDataMap jdme = bpo.extractJSonDataMap();
+
         allocator.free(blockPointer);
-//        bpo.reconstruct();
+
+        System.out.println("by -- > " + jdme.getByte("by"));
     }
 
 }

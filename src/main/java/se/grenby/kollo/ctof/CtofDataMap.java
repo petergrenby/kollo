@@ -24,9 +24,9 @@
 package se.grenby.kollo.ctof;
 
 import se.grenby.kollo.allocator.ByteBlockAllocationReader;
+import se.grenby.kollo.json.JsonDataMap;
 
-import static se.grenby.kollo.ctof.CtofConstants.LIST_VALUE;
-import static se.grenby.kollo.ctof.CtofConstants.MAP_VALUE;
+import static se.grenby.kollo.ctof.CtofConstants.*;
 
 /**
  * Created by peteri on 07/02/16.
@@ -109,11 +109,51 @@ public class CtofDataMap extends CtofDataObject {
                 }
                 break;
             } else {
-                skipValueInByteBuffer();
+                skipValueTypeAndValueInByteBuffer();
             }
         }
 
         return value;
+    }
+
+    public JsonDataMap extractJSonDataMap() {
+        JsonDataMap map = new JsonDataMap();
+
+        blockPosition = mapStartPosition;
+
+        while (blockPosition < mapStartPosition + mapTotalLength) {
+            String mk = getStringFromByteBuffer();
+            int valuePosition = blockPosition;
+            int valueType = blockReader.getByte(blockPointer, blockPosition);
+            blockPosition += Byte.BYTES;
+            if (valueType == MAP_VALUE) {
+                CtofDataMap cdm = new CtofDataMap(blockReader, blockPointer, valuePosition);
+                map.putMap(mk, cdm.extractJSonDataMap());
+                skipMapOrListValueInByteBuffer();
+            } else if (valueType == LIST_VALUE) {
+                CtofDataList cdl = new CtofDataList(blockReader, blockPointer, valuePosition);
+                map.putList(mk, cdl.extractJSonDataList());
+                skipMapOrListValueInByteBuffer();
+            } else if (valueType == BYTE_VALUE) {
+                map.putByte(mk, getValue(Byte.class, valueType));
+            } else if (valueType == SHORT_VALUE) {
+                map.putShort(mk, getValue(Short.class, valueType));
+            } else if (valueType == INTEGER_VALUE) {
+                map.putInt(mk, getValue(Integer.class, valueType));
+            } else if (valueType == LONG_VALUE) {
+                map.putLong(mk, getValue(Long.class, valueType));
+            } else if (valueType == STRING_VALUE) {
+                map.putString(mk, getValue(String.class, valueType));
+            } else if (valueType == FLOAT_VALUE) {
+                map.putFloat(mk, getValue(Float.class, valueType));
+            } else if (valueType == DOUBLE_VALUE) {
+                map.putDouble(mk, getValue(Double.class, valueType));
+            } else {
+                throw new IllegalStateException(valueType + " is not a correct value type.");
+            }
+        }
+
+        return map;
     }
 
 }

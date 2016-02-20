@@ -40,26 +40,26 @@ public class CtofBuilder {
     private static final int MAX_BYTES_CTOF_OBJECT = Short.MAX_VALUE;
     private static ThreadLocal<ByteBuffer> buffers = new ThreadLocal<>();
 
-    public static ByteBuffer buildBPSon(JsonDataMap map) {
+    public static ByteBuffer buildCtof(JsonDataMap map) {
         ByteBuffer buffer = buffers.get();
         if (buffer == null) {
             buffer = ByteBuffer.allocate(MAX_BYTES_CTOF_OBJECT);
             buffers.set(buffer);
         }
-        buffer.reset();
+        buffer.clear();
 
-        buildBPsonMap(buffer, map);
+        buildCtofMap(buffer, map);
         buffer.flip();
 
         return buffer;
     }
 
-    private static void buildBPsonMap(ByteBuffer dst, JsonDataMap map) {
+    private static void buildCtofMap(ByteBuffer dst, JsonDataMap map) {
         dst.put(MAP_VALUE);
         // Move position so we can set size later on
         int mapSizePosition = dst.position();
         dst.position(mapSizePosition + Short.BYTES);
-        for (Map.Entry<String, Object> o : map.hej()) {
+        for (Map.Entry<String, Object> o : map.entrySet()) {
             putStringInByteBuffer(dst, o.getKey());
             buildValue(dst, o.getValue());
         }
@@ -67,12 +67,12 @@ public class CtofBuilder {
         dst.putShort(mapSizePosition, (short) (dst.position() - Short.BYTES - mapSizePosition));
     }
 
-    private static void buildBPsonList(ByteBuffer dst, JsonDataList list) {
+    private static void buildCtofList(ByteBuffer dst, JsonDataList list) {
         dst.put(LIST_VALUE);
         // Move position so we can set size later on
         int listSizePosition = dst.position();
         dst.position(listSizePosition + Short.BYTES);
-        for (Object v : list.hej()) {
+        for (Object v : list) {
             buildValue(dst, v);
         }
 
@@ -82,10 +82,10 @@ public class CtofBuilder {
     private static void buildValue(ByteBuffer dst, Object value) {
         if (value instanceof JsonDataMap) {
             JsonDataMap map = (JsonDataMap) value;
-            buildBPsonMap(dst, map);
+            buildCtofMap(dst, map);
         } else if (value instanceof JsonDataList) {
             JsonDataList list = (JsonDataList) value;
-            buildBPsonList(dst, list);
+            buildCtofList(dst, list);
         } else if (value instanceof Byte) {
             dst.put(BYTE_VALUE);
             dst.put((Byte) value);

@@ -28,46 +28,51 @@ import java.util.*;
 /**
  * Created by peteri on 10/12/15.
  */
-public class JsonDataList {
-
-    private List<Object> list = new ArrayList<>();
+public class JsonDataList extends ArrayList<Object> {
 
     public JsonDataList addByte(byte value) {
-        list.add(value);
+        add(value);
         return this;
     }
 
     public JsonDataList addShort(short value) {
-        list.add(value);
+        add(value);
         return this;
     }
 
     public JsonDataList addInt(int value) {
-        list.add(value);
+        add(value);
         return this;
     }
 
     public JsonDataList addLong(long value) {
-        list.add(value);
+        add(value);
         return this;
     }
 
     public JsonDataList addString(String value) {
-        list.add(value);
+        add(value);
         return this;
     }
 
     public JsonDataList addFloat(float value) {
-        list.add(value);
+        add(value);
         return this;
     }
 
     public JsonDataList addDouble(double value) {
-        list.add(value);
+        add(value);
         return this;
     }
 
-    public List<Object> hej() {
-        return list;
+    public JsonDataList addList(JsonDataList value) {
+        add(value);
+        return this;
     }
+
+    public JsonDataList addMap(JsonDataMap value) {
+        add(value);
+        return this;
+    }
+
 }

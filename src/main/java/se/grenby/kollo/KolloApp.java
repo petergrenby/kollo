@@ -23,64 +23,70 @@
  */
 package se.grenby.kollo;
 
+import se.grenby.kollo.allocator.ByteBlockAllocator;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 public class KolloApp
 {
     public static void main( String args[] ) throws Exception {
-//        ByteBlockAllocator joh = new ByteBlockAllocator(1024);
-//
-//        int p1 = joh.allocate(300);
-//        System.out.println(p1);
-//        int p2 = joh.allocate(300);
-//        System.out.println(p2);
-//        int p3 = joh.allocate(300);
-//        System.out.println(p3);
-//        int p4 = joh.allocate(300);
-//        System.out.println(p4);
-//
-//        System.out.println(joh.memStructureToString());
-//
-//        System.out.println(joh.free(p2));
-//        System.out.println("integrity " + joh.verfiyIntegrity());
-//        System.out.println(joh.free(p1));
-//        System.out.println("integrity " + joh.verfiyIntegrity());
-//        System.out.println(joh.free(p4));
-//        System.out.println("integrity " + joh.verfiyIntegrity());
-//        System.out.println(joh.free(p3));
-//        System.out.println("integrity " + joh.verfiyIntegrity());
-//
-//        System.out.println(joh.memStructureToString());
-//
-//        p1 = joh.allocate(300);
-//        System.out.println(p1);
-//        p2 = joh.allocate(300);
-//        System.out.println(p2);
-//        p3 = joh.allocate(300);
-//        System.out.println(p3);
-//        p4 = joh.allocate(300);
-//        System.out.println(p4);
-//
-//        System.out.println(joh.memStructureToString());
-//
-//        List<Integer> pointers = new ArrayList<>(2000);
-//        joh = new ByteBlockAllocator(1024*1024*1024);
-//        for (int i=0; i<2000; i++) {
-//            pointers.add(joh.allocate(1024));
-//        }
-//
-//        int c = 0;
-//        for (Iterator<Integer> it = pointers.iterator(); ; it.hasNext()) {
-//            joh.free(it.next());
-//            it.remove();
-//            if (c++ > 1000)
-//                break;
-//        }
-//
-//        for (int i=0; i<1000; i++) {
-//            pointers.add(joh.allocate(1024));
-//        }
-//
-//        for (int p : pointers) {
-//            joh.free(p);
-//        }
+        ByteBlockAllocator joh = new ByteBlockAllocator(1024);
+
+        int p1 = joh.allocate(300);
+        System.out.println(p1);
+        int p2 = joh.allocate(300);
+        System.out.println(p2);
+        int p3 = joh.allocate(300);
+        System.out.println(p3);
+        int p4 = joh.allocate(300);
+        System.out.println(p4);
+
+        System.out.println(joh.memStructureToString());
+
+        System.out.println(joh.free(p2));
+        System.out.println("integrity " + joh.verfiyIntegrity());
+        System.out.println(joh.free(p1));
+        System.out.println("integrity " + joh.verfiyIntegrity());
+        System.out.println(joh.free(p4));
+        System.out.println("integrity " + joh.verfiyIntegrity());
+        System.out.println(joh.free(p3));
+        System.out.println("integrity " + joh.verfiyIntegrity());
+
+        System.out.println(joh.memStructureToString());
+
+        p1 = joh.allocate(300);
+        System.out.println(p1);
+        p2 = joh.allocate(300);
+        System.out.println(p2);
+        p3 = joh.allocate(300);
+        System.out.println(p3);
+        p4 = joh.allocate(300);
+        System.out.println(p4);
+
+        System.out.println(joh.memStructureToString());
+
+        List<Integer> pointers = new ArrayList<>(2000);
+        joh = new ByteBlockAllocator(1024*1024*1024);
+        for (int i=0; i<2000; i++) {
+            pointers.add(joh.allocate(1024));
+        }
+
+        int c = 0;
+        for (Iterator<Integer> it = pointers.iterator(); ; it.hasNext()) {
+            joh.free(it.next());
+            it.remove();
+            if (c++ > 1000)
+                break;
+        }
+
+        for (int i=0; i<1000; i++) {
+            pointers.add(joh.allocate(1024));
+        }
+
+        for (int p : pointers) {
+            joh.free(p);
+        }
     }
 }

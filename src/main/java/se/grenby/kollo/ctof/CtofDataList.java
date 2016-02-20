@@ -24,9 +24,13 @@
 package se.grenby.kollo.ctof;
 
 import se.grenby.kollo.allocator.ByteBlockAllocationReader;
+import se.grenby.kollo.json.JsonDataList;
 
-import static se.grenby.kollo.ctof.CtofConstants.LIST_VALUE;
-import static se.grenby.kollo.ctof.CtofConstants.MAP_VALUE;
+import java.util.List;
+
+import static se.grenby.kollo.ctof.CtofConstants.*;
+import static se.grenby.kollo.ctof.CtofConstants.DOUBLE_VALUE;
+import static se.grenby.kollo.ctof.CtofConstants.FLOAT_VALUE;
 
 /**
  * Created by peteri on 07/02/16.
@@ -112,9 +116,9 @@ public class CtofDataList extends CtofDataObject {
             int valueType = blockReader.getByte(blockPointer, blockPosition);
             blockPosition += Byte.BYTES;
             if (valueType == MAP_VALUE) {
-                value = klass.cast(new CtofDataMap(blockReader, valuePosition));
+                value = klass.cast(new CtofDataMap(blockReader, blockPointer, valuePosition));
             } else if (valueType == LIST_VALUE) {
-                value = klass.cast(new CtofDataList(blockReader, valuePosition));
+                value = klass.cast(new CtofDataList(blockReader, blockPointer, valuePosition));
             } else {
                 value = getValue(klass, valueType);
             }
@@ -126,4 +130,41 @@ public class CtofDataList extends CtofDataObject {
         return value;
     }
 
+    public JsonDataList extractJSonDataList() {
+        JsonDataList list = new JsonDataList();
+        blockPosition = listStartPosition;
+
+        while (blockPosition < listStartPosition + listTotalLength) {
+            int valuePosition = blockPosition;
+            int valueType = blockReader.getByte(blockPointer, blockPosition);
+            blockPosition += Byte.BYTES;
+            if (valueType == MAP_VALUE) {
+                CtofDataMap cdm = new CtofDataMap(blockReader, blockPointer, valuePosition);
+                list.addMap(cdm.extractJSonDataMap());
+                skipMapOrListValueInByteBuffer();
+            } else if (valueType == LIST_VALUE) {
+                CtofDataList cdl = new CtofDataList(blockReader, blockPointer, valuePosition);
+                list.addList(cdl.extractJSonDataList());
+                skipMapOrListValueInByteBuffer();
+            } else if (valueType == BYTE_VALUE) {
+                list.addByte(getValue(Byte.class, valueType));
+            } else if (valueType == SHORT_VALUE) {
+                list.addShort(getValue(Short.class, valueType));
+            } else if (valueType == INTEGER_VALUE) {
+                list.addInt(getValue(Integer.class, valueType));
+            } else if (valueType == LONG_VALUE) {
+                list.addLong(getValue(Long.class, valueType));
+            } else if (valueType == STRING_VALUE) {
+                list.addString(getValue(String.class, valueType));
+            } else if (valueType == FLOAT_VALUE) {
+                list.addFloat(getValue(Float.class, valueType));
+            } else if (valueType == DOUBLE_VALUE) {
+                list.addDouble(getValue(Double.class, valueType));
+            } else {
+                throw new IllegalStateException(valueType + " is not a correct value type.");
+            }
+        }
+
+        return list;
+    }
 }

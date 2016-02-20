@@ -87,7 +87,7 @@ public abstract class CtofDataObject {
         return value;
     }
 
-    protected void skipValueInByteBuffer() {
+    protected void skipValueTypeAndValueInByteBuffer() {
         byte valueType = blockReader.getByte(blockPointer, blockPosition);
         blockPosition += Byte.BYTES;
         switch (valueType) {
@@ -111,109 +111,24 @@ public abstract class CtofDataObject {
                 break;
             case MAP_VALUE:
             case LIST_VALUE:
-                int mlLength = blockReader.getShort(blockPointer, blockPosition);
-                blockPosition += mlLength + Short.BYTES;
+                skipMapOrListValueInByteBuffer();
                 break;
             case STRING_VALUE:
-                int stringLength = blockReader.getByte(blockPointer, blockPosition);
-                blockPosition += stringLength + Byte.BYTES;
+                skipStringValueInByteBuffer();
                 break;
             default:
                 throw new RuntimeException("Unknown value type " + valueType);
         }
     }
 
-    public void reconstruct() {
-        StringBuilder sb = new StringBuilder();
-
-        int structType = blockReader.getByte(blockPointer, blockPosition);
-        blockPosition += Byte.BYTES;
-        if (structType == MAP_VALUE) {
-            sb.append(extractMapValueFromByteBuffer());
-        } else if (structType == LIST_VALUE) {
-            sb.append(extractListValueFromByteBuffer());
-        }
-
-        System.out.println(sb.toString());
+    private void skipStringValueInByteBuffer() {
+        int stringLength = blockReader.getByte(blockPointer, blockPosition);
+        blockPosition += stringLength + Byte.BYTES;
     }
 
-    private String extractListValueFromByteBuffer() {
-        StringBuilder dst = new StringBuilder();
-        dst.append("[");
-
-        int listLength = blockReader.getShort(blockPointer, blockPosition);
-        blockPosition += Short.BYTES;
-        int listStart = blockPosition;
-        while (blockPosition < listStart + listLength) {
-            if (blockPosition > listStart + Short.BYTES)
-                dst.append(", ");
-            dst.append(extractValueFromByteBuffer());
-        }
-
-        dst.append("]");
-        return dst.toString();
-    }
-
-    private String extractMapValueFromByteBuffer() {
-        StringBuilder dst = new StringBuilder();
-
-        int mapLength = blockReader.getShort(blockPointer, blockPosition);
-        blockPosition += Short.BYTES;
-        int mapStart = blockPosition;
-        while (blockPosition < mapStart + mapLength) {
-            dst.append(getStringFromByteBuffer());
-            dst.append(" : ");
-            dst.append(extractValueFromByteBuffer());
-            dst.append("\n");
-        }
-
-        return dst.toString();
-    }
-
-    private String extractValueFromByteBuffer() {
-        StringBuilder dst = new StringBuilder();
-
-        byte valueType = blockReader.getByte(blockPointer, blockPosition);
-        blockPosition += Byte.BYTES;
-        switch (valueType) {
-            case MAP_VALUE:
-                dst.append(extractMapValueFromByteBuffer());
-                break;
-            case LIST_VALUE:
-                dst.append(extractListValueFromByteBuffer());
-                break;
-            case BYTE_VALUE:
-                dst.append(blockReader.getByte(blockPointer, blockPosition));
-                blockPosition += Byte.BYTES;
-                break;
-            case SHORT_VALUE:
-                dst.append(blockReader.getShort(blockPointer, blockPosition));
-                blockPosition += Short.BYTES;
-                break;
-            case INTEGER_VALUE:
-                dst.append(blockReader.getInt(blockPointer, blockPosition));
-                blockPosition += Integer.BYTES;
-                break;
-            case LONG_VALUE:
-                dst.append(blockReader.getLong(blockPointer, blockPosition));
-                blockPosition += Long.BYTES;
-                break;
-            case FLOAT_VALUE:
-                dst.append(blockReader.getFloat(blockPointer, blockPosition));
-                blockPosition += Float.BYTES;
-                break;
-            case DOUBLE_VALUE:
-                dst.append(blockReader.getDouble(blockPointer, blockPosition));
-                blockPosition += Double.BYTES;
-                break;
-            case STRING_VALUE:
-                dst.append(getStringFromByteBuffer());
-                break;
-            default:
-                dst.append("(" + valueType + ")");
-        }
-
-        return dst.toString();
+    protected void skipMapOrListValueInByteBuffer() {
+        int mlLength = blockReader.getShort(blockPointer, blockPosition);
+        blockPosition += mlLength + Short.BYTES;
     }
 
     protected String getStringFromByteBuffer() {
