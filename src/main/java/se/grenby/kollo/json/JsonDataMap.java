@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.ctof;
+package se.grenby.kollo.json;
 
 import java.util.HashMap;
 import java.util.Map;

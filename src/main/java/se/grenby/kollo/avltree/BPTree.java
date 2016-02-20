@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.btree;
+package se.grenby.kollo.avltree;
 
 /**
  * Created by peteri on 17/12/15.
