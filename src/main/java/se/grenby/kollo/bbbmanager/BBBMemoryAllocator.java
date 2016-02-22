@@ -21,20 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.ctof;
+package se.grenby.kollo.bbbmanager;
+
+import java.nio.ByteBuffer;
 
 /**
- * Created by peteri on 06/02/16.
+ * Created by peteri on 21/02/16.
  */
-public class CtofConstants {
-    public static final byte MAP_VALUE = 1;
-    public static final byte LIST_VALUE = 2;
-    public static final byte BYTE_VALUE = 3;
-    public static final byte SHORT_VALUE = 4;
-    public static final byte INTEGER_VALUE = 5;
-    public static final byte LONG_VALUE = 6;
-    public static final byte STRING_VALUE = 7;
-    public static final byte FLOAT_VALUE = 8;
-    public static final byte DOUBLE_VALUE = 9;
+public interface BBBMemoryAllocator extends BBBMemoryReader {
+    int allocate(int sizeOfPayload);
 
+    int allocateAndClear(int sizeOfPayload);
+
+    int allocateAndClone(ByteBuffer buffer);
 }

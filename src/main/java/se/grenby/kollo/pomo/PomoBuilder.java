@@ -21,8 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.ctof;
+package se.grenby.kollo.pomo;
 
+import se.grenby.kollo.bbbmanager.BbbMemoryAllocator;
+import se.grenby.kollo.pomo.bytebuffer.CtofByteBufferMap;
 import se.grenby.kollo.json.JsonDataList;
 import se.grenby.kollo.json.JsonDataMap;
 
@@ -30,27 +32,42 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static se.grenby.kollo.ctof.CtofConstants.*;
+import static se.grenby.kollo.pomo.PomoConstants.*;
 
 /**
  * Created by peteri on 30/01/16.
  */
-public class CtofBuilder {
+public class PomoBuilder {
 
     private static final int MAX_BYTES_CTOF_OBJECT = Short.MAX_VALUE;
     private static ThreadLocal<ByteBuffer> buffers = new ThreadLocal<>();
 
-    public static ByteBuffer buildCtof(JsonDataMap map) {
+    public static CtofByteBufferMap buildCtofByteBuffer(JsonDataMap map) {
+        ByteBuffer buffer = getByteBuffer();
+
+        buildCtofMap(buffer, map);
+        buffer.flip();
+
+        return new CtofByteBufferMap(buffer);
+    }
+
+    public static int buildCtofByteBlockBuffer(BbbMemoryAllocator allocator, JsonDataMap map) {
+        ByteBuffer buffer = getByteBuffer();
+
+        buildCtofMap(buffer, map);
+        buffer.flip();
+
+        int blockPointer = allocator.allocateAndClone(buffer);
+        return blockPointer;
+    }
+
+    private static ByteBuffer getByteBuffer() {
         ByteBuffer buffer = buffers.get();
         if (buffer == null) {
             buffer = ByteBuffer.allocate(MAX_BYTES_CTOF_OBJECT);
             buffers.set(buffer);
         }
         buffer.clear();
-
-        buildCtofMap(buffer, map);
-        buffer.flip();
-
         return buffer;
     }
 

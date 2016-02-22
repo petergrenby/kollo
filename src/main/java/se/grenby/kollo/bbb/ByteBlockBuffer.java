@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.blockbuffer;
+package se.grenby.kollo.bbb;
 
 import java.nio.ByteBuffer;
 
@@ -67,13 +67,13 @@ public class ByteBlockBuffer {
         if (previousPointer >= BLOCK_SIZE_IN_BYTES) {
             return previousPointer;
         } else {
-            throw new IllegalStateException("Integrity of block blockbuffer is compromised");
+            throw new IllegalStateException("Integrity of block bbb is compromised");
         }
     }
 
     public int nextBlock(int pointer) {
         if (!isCorrectBlock(pointer)) {
-            throw new IllegalStateException("Integrity of block blockbuffer is compromised. Pointer = " + pointer + " size " + getBlockSize(pointer));
+            throw new IllegalStateException("Integrity of block bbb is compromised. Pointer = " + pointer + " size " + getBlockSize(pointer));
         }
 
         int size = getBlockSize(pointer);
@@ -84,7 +84,7 @@ public class ByteBlockBuffer {
         } else if (nextPointer == bufferCapacity + BLOCK_SIZE_IN_BYTES) {
             return INT_VALUE_FOR_NULL;
         } else {
-            throw new IllegalStateException("Integrity of block blockbuffer is compromised");
+            throw new IllegalStateException("Integrity of block bbb is compromised");
         }
     }
 

@@ -21,26 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.ctof;
+package se.grenby.kollo.pomo.bbb;
 
-import se.grenby.kollo.allocator.ByteBlockAllocationReader;
+import se.grenby.kollo.bbbmanager.BbbMemoryReader;
 
 import java.nio.charset.StandardCharsets;
 
-import static se.grenby.kollo.ctof.CtofConstants.*;
+import static se.grenby.kollo.pomo.PomoConstants.*;
+import static se.grenby.kollo.util.BitUtil.HEXES;
 
 /**
  * Created by peteri on 30/01/16.
  */
-public abstract class CtofDataObject {
-    private static final char[] HEXES = "0123456789ABCDEF".toCharArray();
-
-    protected final ByteBlockAllocationReader blockReader;
+public abstract class PomoByteBlockBufferObject {
+    protected final BbbMemoryReader blockReader;
     protected final int blockPointer;
     protected final int startBlockPosition;
     protected int blockPosition;
 
-    CtofDataObject(ByteBlockAllocationReader block, int blockPointer, int position) {
+    PomoByteBlockBufferObject(BbbMemoryReader block, int blockPointer, int position) {
         this.blockReader = block;
         this.blockPointer = blockPointer;
         this.startBlockPosition = position;

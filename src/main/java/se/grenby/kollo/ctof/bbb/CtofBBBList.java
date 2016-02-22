@@ -21,12 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.ctof;
+package se.grenby.kollo.ctof.bbb;
 
-import se.grenby.kollo.allocator.ByteBlockAllocationReader;
+import se.grenby.kollo.allocator.AllocatedBBBReader;
 import se.grenby.kollo.json.JsonDataList;
-
-import java.util.List;
 
 import static se.grenby.kollo.ctof.CtofConstants.*;
 import static se.grenby.kollo.ctof.CtofConstants.DOUBLE_VALUE;
@@ -35,17 +33,13 @@ import static se.grenby.kollo.ctof.CtofConstants.FLOAT_VALUE;
 /**
  * Created by peteri on 07/02/16.
  */
-public class CtofDataList extends CtofDataObject {
+public class CtofBBBList extends CtofBBBObject {
 
     private final int listStartPosition;
     private final int listTotalLength;
     private int nextElementPosition;
 
-    CtofDataList(ByteBlockAllocationReader reader, int blockPointer) {
-        this(reader, blockPointer, 0);
-    }
-
-    CtofDataList(ByteBlockAllocationReader reader, int blockPointer, int position) {
+    CtofBBBList(AllocatedBBBReader reader, int blockPointer, int position) {
         super(reader, blockPointer, position);
 
         byte valueType = reader.getByte(blockPointer, blockPosition);
@@ -60,12 +54,12 @@ public class CtofDataList extends CtofDataObject {
         }
     }
 
-    public CtofDataMap getNextMapValue() {
-        return getNextValue(CtofDataMap.class);
+    public CtofBBBMap getNextMapValue() {
+        return getNextValue(CtofBBBMap.class);
     }
 
-    public CtofDataList getNextListValue() {
-        return getNextValue(CtofDataList.class);
+    public CtofBBBList getNextListValue() {
+        return getNextValue(CtofBBBList.class);
     }
 
     public byte getNextByteValue() {
@@ -116,9 +110,9 @@ public class CtofDataList extends CtofDataObject {
             int valueType = blockReader.getByte(blockPointer, blockPosition);
             blockPosition += Byte.BYTES;
             if (valueType == MAP_VALUE) {
-                value = klass.cast(new CtofDataMap(blockReader, blockPointer, valuePosition));
+                value = klass.cast(new CtofBBBMap(blockReader, blockPointer, valuePosition));
             } else if (valueType == LIST_VALUE) {
-                value = klass.cast(new CtofDataList(blockReader, blockPointer, valuePosition));
+                value = klass.cast(new CtofBBBList(blockReader, blockPointer, valuePosition));
             } else {
                 value = getValue(klass, valueType);
             }
@@ -139,11 +133,11 @@ public class CtofDataList extends CtofDataObject {
             int valueType = blockReader.getByte(blockPointer, blockPosition);
             blockPosition += Byte.BYTES;
             if (valueType == MAP_VALUE) {
-                CtofDataMap cdm = new CtofDataMap(blockReader, blockPointer, valuePosition);
+                CtofBBBMap cdm = new CtofBBBMap(blockReader, blockPointer, valuePosition);
                 list.addMap(cdm.extractJSonDataMap());
                 skipMapOrListValueInByteBuffer();
             } else if (valueType == LIST_VALUE) {
-                CtofDataList cdl = new CtofDataList(blockReader, blockPointer, valuePosition);
+                CtofBBBList cdl = new CtofBBBList(blockReader, blockPointer, valuePosition);
                 list.addList(cdl.extractJSonDataList());
                 skipMapOrListValueInByteBuffer();
             } else if (valueType == BYTE_VALUE) {

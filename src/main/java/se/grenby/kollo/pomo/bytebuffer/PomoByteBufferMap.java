@@ -21,32 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.ctof;
+package se.grenby.kollo.pomo.bytebuffer;
 
-import se.grenby.kollo.allocator.ByteBlockAllocationReader;
 import se.grenby.kollo.json.JsonDataMap;
 
-import static se.grenby.kollo.ctof.CtofConstants.*;
+import java.nio.ByteBuffer;
+
+import static se.grenby.kollo.pomo.PomoConstants.*;
 
 /**
  * Created by peteri on 07/02/16.
  */
-public class CtofDataMap extends CtofDataObject {
+public class PomoByteBufferMap extends PomoByteBufferObject {
 
     private final int mapStartPosition;
     private final int mapTotalLength;
 
-    public CtofDataMap(ByteBlockAllocationReader reader, int blockPointer) {
-        this(reader, blockPointer, 0);
+    public PomoByteBufferMap(ByteBuffer buffer) {
+        this(cloneByteBuffert(buffer), 0);
     }
 
-    public CtofDataMap(ByteBlockAllocationReader reader, int blockPointer, int position) {
-        super(reader, blockPointer, position);
+    public static ByteBuffer cloneByteBuffert(ByteBuffer src) {
+        // Allocate a new buffer with correct size
+        ByteBuffer dst = ByteBuffer.allocate(src.limit());
+        dst.put(src);
+        dst.flip();
+        return dst;
+    }
 
-        byte valueType = blockReader.getByte(blockPointer, blockPosition);
+    public PomoByteBufferMap(ByteBuffer buffer, int position) {
+        super(buffer, position);
+
+        byte valueType = buffer.get(blockPosition);
         blockPosition += Byte.BYTES;
         if (valueType == MAP_VALUE) {
-            mapTotalLength = blockReader.getShort(blockPointer, blockPosition);
+            mapTotalLength = buffer.getShort(blockPosition);
             blockPosition += Short.BYTES;
             mapStartPosition = blockPosition;
         } else {
@@ -54,12 +63,12 @@ public class CtofDataMap extends CtofDataObject {
         }
     }
 
-    public CtofDataMap getMapValue(String key) {
-        return getValue(key, CtofDataMap.class);
+    public PomoByteBufferMap getMapValue(String key) {
+        return getValue(key, PomoByteBufferMap.class);
     }
 
-    public CtofDataList getListValue(String key) {
-        return getValue(key, CtofDataList.class);
+    public PomoByteBufferList getListValue(String key) {
+        return getValue(key, PomoByteBufferList.class);
     }
 
     public byte getByteValue(String key) {
@@ -98,12 +107,12 @@ public class CtofDataMap extends CtofDataObject {
             String mk = getStringFromByteBuffer();
             if (key.equals(mk)) {
                 int valuePosition = blockPosition;
-                int valueType = blockReader.getByte(blockPointer, blockPosition);
+                int valueType = buffer.get(blockPosition);
                 blockPosition += Byte.BYTES;
                 if (valueType == MAP_VALUE) {
-                    value = klass.cast(new CtofDataMap(blockReader, blockPointer, valuePosition));
+                    value = klass.cast(new PomoByteBufferMap(buffer, valuePosition));
                 } else if (valueType == LIST_VALUE) {
-                    value = klass.cast(new CtofDataList(blockReader, blockPointer, valuePosition));
+                    value = klass.cast(new PomoByteBufferList(buffer, valuePosition));
                 } else {
                     value = getValue(klass, valueType);
                 }
@@ -124,14 +133,14 @@ public class CtofDataMap extends CtofDataObject {
         while (blockPosition < mapStartPosition + mapTotalLength) {
             String mk = getStringFromByteBuffer();
             int valuePosition = blockPosition;
-            int valueType = blockReader.getByte(blockPointer, blockPosition);
+            int valueType = buffer.get(blockPosition);
             blockPosition += Byte.BYTES;
             if (valueType == MAP_VALUE) {
-                CtofDataMap cdm = new CtofDataMap(blockReader, blockPointer, valuePosition);
+                PomoByteBufferMap cdm = new PomoByteBufferMap(buffer, valuePosition);
                 map.putMap(mk, cdm.extractJSonDataMap());
                 skipMapOrListValueInByteBuffer();
             } else if (valueType == LIST_VALUE) {
-                CtofDataList cdl = new CtofDataList(blockReader, blockPointer, valuePosition);
+                PomoByteBufferList cdl = new PomoByteBufferList(buffer, valuePosition);
                 map.putList(mk, cdl.extractJSonDataList());
                 skipMapOrListValueInByteBuffer();
             } else if (valueType == BYTE_VALUE) {

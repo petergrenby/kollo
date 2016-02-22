@@ -21,9 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.allocator;
+package se.grenby.kollo.bbbmanager;
 
-import se.grenby.kollo.blockbuffer.ByteBlockBuffer;
+import se.grenby.kollo.bbb.ByteBlockBuffer;
 import se.grenby.kollo.util.BitUtil;
 
 import java.nio.ByteBuffer;
@@ -34,9 +34,9 @@ import static se.grenby.kollo.constant.PrimitiveConstants.INT_VALUE_FOR_NULL;
 /**
  * Created by peteri on 23/10/15.
  */
-public class ByteBlockAllocator implements ByteBlockAllocationReader {
+public class BBBMemoryManager implements BBBMemoryAllocator {
 
-    private final static Logger logger = Logger.getLogger(ByteBlockAllocator.class.getName());
+    private final static Logger logger = Logger.getLogger(BBBMemoryManager.class.getName());
 
     // The smallest block that is allowed after a split.
     // Some if it will taken for overhead block handling, 8 bytes at time of writing.
@@ -56,7 +56,7 @@ public class ByteBlockAllocator implements ByteBlockAllocationReader {
     private final int numberOfBins;
     private final int binBlockPointer;
 
-    public ByteBlockAllocator(final int capacity) {
+    public BBBMemoryManager(final int capacity) {
         blockBuffer = new ByteBlockBuffer(capacity);
 
         numberOfBins = BitUtil.numberOfBitsNeeded(blockBuffer.getCapacity());
@@ -80,6 +80,7 @@ public class ByteBlockAllocator implements ByteBlockAllocationReader {
         System.out.println("Void-block starts " + voidPointer);
     }
 
+    @Override
     public int allocate(final int sizeOfPayload) {
         // find smallest block that is big enough in the bin
         int blockPointer = findLeastSizedBlockBins(sizeOfPayload + RELATIVE_POINTER_PAYLOAD);
@@ -100,6 +101,7 @@ public class ByteBlockAllocator implements ByteBlockAllocationReader {
         }
     }
 
+    @Override
     public int allocateAndClear(final int sizeOfPayload) {
         int pointer = allocate(sizeOfPayload);
         if (pointer != INT_VALUE_FOR_NULL) {
@@ -108,6 +110,7 @@ public class ByteBlockAllocator implements ByteBlockAllocationReader {
         return pointer;
     }
 
+    @Override
     public int allocateAndClone(final ByteBuffer buffer) {
         int pointer = allocate(buffer.limit());
         if (pointer != INT_VALUE_FOR_NULL) {
