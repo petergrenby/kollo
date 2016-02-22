@@ -21,10 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.pomo;
+package se.grenby.kollo.sos;
 
 import se.grenby.kollo.bbbmanager.ByteBlockBufferAllocator;
-import se.grenby.kollo.pomo.bytebuffer.PomoByteBufferMap;
+import se.grenby.kollo.sos.bytebuffer.SosByteBufferMap;
 import se.grenby.kollo.json.JsonDataList;
 import se.grenby.kollo.json.JsonDataMap;
 
@@ -32,23 +32,23 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static se.grenby.kollo.pomo.PomoConstants.*;
+import static se.grenby.kollo.sos.SosConstants.*;
 
 /**
  * Created by peteri on 30/01/16.
  */
-public class PomoBuilder {
+public class SosBuilder {
 
     private static final int MAX_BYTES_CTOF_OBJECT = Short.MAX_VALUE;
     private static ThreadLocal<ByteBuffer> buffers = new ThreadLocal<>();
 
-    public static PomoByteBufferMap buildCtofByteBuffer(JsonDataMap map) {
+    public static SosByteBufferMap buildCtofByteBuffer(JsonDataMap map) {
         ByteBuffer buffer = getByteBuffer();
 
         buildCtofMap(buffer, map);
         buffer.flip();
 
-        return new PomoByteBufferMap(buffer);
+        return new SosByteBufferMap(buffer);
     }
 
     public static int buildCtofByteBlockBuffer(ByteBlockBufferAllocator allocator, JsonDataMap map) {

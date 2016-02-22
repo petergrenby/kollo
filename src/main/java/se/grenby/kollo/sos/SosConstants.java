@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.pomo;
+package se.grenby.kollo.sos;
 
 /**
  * Created by peteri on 06/02/16.
  */
-public class PomoConstants {
+public class SosConstants {
     public static final byte MAP_VALUE = 1;
     public static final byte LIST_VALUE = 2;
     public static final byte BYTE_VALUE = 3;

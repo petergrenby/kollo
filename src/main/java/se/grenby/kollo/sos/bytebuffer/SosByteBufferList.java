@@ -21,24 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.pomo.bytebuffer;
+package se.grenby.kollo.sos.bytebuffer;
 
 import se.grenby.kollo.json.JsonDataList;
 
 import java.nio.ByteBuffer;
 
-import static se.grenby.kollo.pomo.PomoConstants.*;
+import static se.grenby.kollo.sos.SosConstants.*;
 
 /**
  * Created by peteri on 07/02/16.
  */
-public class PomoByteBufferList extends PomoByteBufferObject {
+public class SosByteBufferList extends SosByteBufferObject {
 
     private final int listStartPosition;
     private final int listTotalLength;
     private int nextElementPosition;
 
-    PomoByteBufferList(ByteBuffer buffer, int position) {
+    SosByteBufferList(ByteBuffer buffer, int position) {
         super(buffer, position);
 
         byte valueType = buffer.get(blockPosition);
@@ -53,12 +53,12 @@ public class PomoByteBufferList extends PomoByteBufferObject {
         }
     }
 
-    public PomoByteBufferMap getNextMapValue() {
-        return getNextValue(PomoByteBufferMap.class);
+    public SosByteBufferMap getNextMapValue() {
+        return getNextValue(SosByteBufferMap.class);
     }
 
-    public PomoByteBufferList getNextListValue() {
-        return getNextValue(PomoByteBufferList.class);
+    public SosByteBufferList getNextListValue() {
+        return getNextValue(SosByteBufferList.class);
     }
 
     public byte getNextByteValue() {
@@ -109,9 +109,9 @@ public class PomoByteBufferList extends PomoByteBufferObject {
             int valueType = buffer.get(blockPosition);
             blockPosition += Byte.BYTES;
             if (valueType == MAP_VALUE) {
-                value = klass.cast(new PomoByteBufferMap(buffer, valuePosition));
+                value = klass.cast(new SosByteBufferMap(buffer, valuePosition));
             } else if (valueType == LIST_VALUE) {
-                value = klass.cast(new PomoByteBufferList(buffer, valuePosition));
+                value = klass.cast(new SosByteBufferList(buffer, valuePosition));
             } else {
                 value = getValue(klass, valueType);
             }
@@ -132,11 +132,11 @@ public class PomoByteBufferList extends PomoByteBufferObject {
             int valueType = buffer.get(blockPosition);
             blockPosition += Byte.BYTES;
             if (valueType == MAP_VALUE) {
-                PomoByteBufferMap cdm = new PomoByteBufferMap(buffer, valuePosition);
+                SosByteBufferMap cdm = new SosByteBufferMap(buffer, valuePosition);
                 list.addMap(cdm.extractJSonDataMap());
                 skipMapOrListValueInByteBuffer();
             } else if (valueType == LIST_VALUE) {
-                PomoByteBufferList cdl = new PomoByteBufferList(buffer, valuePosition);
+                SosByteBufferList cdl = new SosByteBufferList(buffer, valuePosition);
                 list.addList(cdl.extractJSonDataList());
                 skipMapOrListValueInByteBuffer();
             } else if (valueType == BYTE_VALUE) {

@@ -24,9 +24,9 @@
 package se.grenby.kollo;
 
 import se.grenby.kollo.bbbmanager.ByteBlockBufferManager;
-import se.grenby.kollo.pomo.*;
-import se.grenby.kollo.pomo.bbb.PomoByteBlockBufferList;
-import se.grenby.kollo.pomo.bbb.PomoByteBlockBufferMap;
+import se.grenby.kollo.sos.*;
+import se.grenby.kollo.sos.bbb.SosByteBlockBufferList;
+import se.grenby.kollo.sos.bbb.SosByteBlockBufferMap;
 import se.grenby.kollo.json.JsonDataList;
 import se.grenby.kollo.json.JsonDataMap;
 
@@ -52,24 +52,24 @@ public class SerializerApp {
         jdm.putMap("map", jdm2);
 
         ByteBlockBufferManager memory = new ByteBlockBufferManager(1024*10);
-        int blockPointer = PomoBuilder.buildCtofByteBlockBuffer(memory, jdm);
-        PomoByteBlockBufferMap ctof = new PomoByteBlockBufferMap(memory, blockPointer);
+        int blockPointer = SosBuilder.buildCtofByteBlockBuffer(memory, jdm);
+        SosByteBlockBufferMap sos = new SosByteBlockBufferMap(memory, blockPointer);
 
-        System.out.println(ctof.toString());
+        System.out.println(sos.toString());
         System.out.println();
-        System.out.println("Byte -->" + ctof.getByteValue("by") + "<--");
-        System.out.println("Short -->" + ctof.getShortValue("sh") + "<--");
-        System.out.println("Integer -->" + ctof.getIntValue("in") + "<--");
-        System.out.println("Long -->" + ctof.getLongValue("lo") + "<--");
-        System.out.println("Float -->" + ctof.getFloatValue("fl") + "<--");
-        System.out.println("Double -->" + ctof.getDoubleValue("do") + "<--");
-        System.out.println("String -->" + ctof.getStringValue("st") + "<--");
+        System.out.println("Byte -->" + sos.getByteValue("by") + "<--");
+        System.out.println("Short -->" + sos.getShortValue("sh") + "<--");
+        System.out.println("Integer -->" + sos.getIntValue("in") + "<--");
+        System.out.println("Long -->" + sos.getLongValue("lo") + "<--");
+        System.out.println("Float -->" + sos.getFloatValue("fl") + "<--");
+        System.out.println("Double -->" + sos.getDoubleValue("do") + "<--");
+        System.out.println("String -->" + sos.getStringValue("st") + "<--");
 
-        PomoByteBlockBufferMap bpo2 = ctof.getMapValue("map");
+        SosByteBlockBufferMap bpo2 = sos.getMapValue("map");
         System.out.println("In map -->" + bpo2.getStringValue("st2") + "<--");
         System.out.println("In map -->" + bpo2.getStringValue("st3") + "<--");
 
-        PomoByteBlockBufferList bpl = ctof.getListValue("list");
+        SosByteBlockBufferList bpl = sos.getListValue("list");
         System.out.println("Has list -->" + bpl.hasNext() + "<--");
         System.out.println("In list -->" + bpl.getNextByteValue() + "<--");
         System.out.println("In list -->" + bpl.getNextShortValue() + "<--");
@@ -82,7 +82,7 @@ public class SerializerApp {
 
         System.out.println(memory.memStructureToString());
 
-        JsonDataMap jdme = ctof.extractJSonDataMap();
+        JsonDataMap jdme = sos.extractJSonDataMap();
 
         memory.free(blockPointer);
 

@@ -21,25 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.pomo.bbb;
+package se.grenby.kollo.sos.bbb;
 
 import se.grenby.kollo.bbbmanager.ByteBlockBufferReader;
 import se.grenby.kollo.json.JsonDataList;
 
-import static se.grenby.kollo.pomo.PomoConstants.*;
-import static se.grenby.kollo.pomo.PomoConstants.DOUBLE_VALUE;
-import static se.grenby.kollo.pomo.PomoConstants.FLOAT_VALUE;
+import static se.grenby.kollo.sos.SosConstants.*;
+import static se.grenby.kollo.sos.SosConstants.DOUBLE_VALUE;
+import static se.grenby.kollo.sos.SosConstants.FLOAT_VALUE;
 
 /**
  * Created by peteri on 07/02/16.
  */
-public class PomoByteBlockBufferList extends PomoByteBlockBufferObject {
+public class SosByteBlockBufferList extends SosByteBlockBufferObject {
 
     private final int listStartPosition;
     private final int listTotalLength;
     private int nextElementPosition;
 
-    PomoByteBlockBufferList(ByteBlockBufferReader reader, int blockPointer, int position) {
+    SosByteBlockBufferList(ByteBlockBufferReader reader, int blockPointer, int position) {
         super(reader, blockPointer, position);
 
         byte valueType = reader.getByte(blockPointer, blockPosition);
@@ -54,12 +54,12 @@ public class PomoByteBlockBufferList extends PomoByteBlockBufferObject {
         }
     }
 
-    public PomoByteBlockBufferMap getNextMapValue() {
-        return getNextValue(PomoByteBlockBufferMap.class);
+    public SosByteBlockBufferMap getNextMapValue() {
+        return getNextValue(SosByteBlockBufferMap.class);
     }
 
-    public PomoByteBlockBufferList getNextListValue() {
-        return getNextValue(PomoByteBlockBufferList.class);
+    public SosByteBlockBufferList getNextListValue() {
+        return getNextValue(SosByteBlockBufferList.class);
     }
 
     public byte getNextByteValue() {
@@ -110,9 +110,9 @@ public class PomoByteBlockBufferList extends PomoByteBlockBufferObject {
             int valueType = blockReader.getByte(blockPointer, blockPosition);
             blockPosition += Byte.BYTES;
             if (valueType == MAP_VALUE) {
-                value = klass.cast(new PomoByteBlockBufferMap(blockReader, blockPointer, valuePosition));
+                value = klass.cast(new SosByteBlockBufferMap(blockReader, blockPointer, valuePosition));
             } else if (valueType == LIST_VALUE) {
-                value = klass.cast(new PomoByteBlockBufferList(blockReader, blockPointer, valuePosition));
+                value = klass.cast(new SosByteBlockBufferList(blockReader, blockPointer, valuePosition));
             } else {
                 value = getValue(klass, valueType);
             }
@@ -133,11 +133,11 @@ public class PomoByteBlockBufferList extends PomoByteBlockBufferObject {
             int valueType = blockReader.getByte(blockPointer, blockPosition);
             blockPosition += Byte.BYTES;
             if (valueType == MAP_VALUE) {
-                PomoByteBlockBufferMap cdm = new PomoByteBlockBufferMap(blockReader, blockPointer, valuePosition);
+                SosByteBlockBufferMap cdm = new SosByteBlockBufferMap(blockReader, blockPointer, valuePosition);
                 list.addMap(cdm.extractJSonDataMap());
                 skipMapOrListValueInByteBuffer();
             } else if (valueType == LIST_VALUE) {
-                PomoByteBlockBufferList cdl = new PomoByteBlockBufferList(blockReader, blockPointer, valuePosition);
+                SosByteBlockBufferList cdl = new SosByteBlockBufferList(blockReader, blockPointer, valuePosition);
                 list.addList(cdl.extractJSonDataList());
                 skipMapOrListValueInByteBuffer();
             } else if (valueType == BYTE_VALUE) {
