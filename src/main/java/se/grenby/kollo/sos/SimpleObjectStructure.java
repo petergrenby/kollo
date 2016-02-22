@@ -37,24 +37,24 @@ import static se.grenby.kollo.sos.SosConstants.*;
 /**
  * Created by peteri on 30/01/16.
  */
-public class SosBuilder {
+public class SimpleObjectStructure {
 
     private static final int MAX_BYTES_CTOF_OBJECT = Short.MAX_VALUE;
     private static ThreadLocal<ByteBuffer> buffers = new ThreadLocal<>();
 
-    public static SosByteBufferMap buildCtofByteBuffer(JsonDataMap map) {
+    public static SosByteBufferMap buildSosByteBuffer(JsonDataMap map) {
         ByteBuffer buffer = getByteBuffer();
 
-        buildCtofMap(buffer, map);
+        buildSosMap(buffer, map);
         buffer.flip();
 
         return new SosByteBufferMap(buffer);
     }
 
-    public static int buildCtofByteBlockBuffer(ByteBlockBufferAllocator allocator, JsonDataMap map) {
+    public static int buildSosByteBlockBuffer(ByteBlockBufferAllocator allocator, JsonDataMap map) {
         ByteBuffer buffer = getByteBuffer();
 
-        buildCtofMap(buffer, map);
+        buildSosMap(buffer, map);
         buffer.flip();
 
         int blockPointer = allocator.allocateAndClone(buffer);
@@ -71,7 +71,7 @@ public class SosBuilder {
         return buffer;
     }
 
-    private static void buildCtofMap(ByteBuffer dst, JsonDataMap map) {
+    private static void buildSosMap(ByteBuffer dst, JsonDataMap map) {
         dst.put(MAP_VALUE);
         // Move position so we can set size later on
         int mapSizePosition = dst.position();
@@ -84,7 +84,7 @@ public class SosBuilder {
         dst.putShort(mapSizePosition, (short) (dst.position() - Short.BYTES - mapSizePosition));
     }
 
-    private static void buildCtofList(ByteBuffer dst, JsonDataList list) {
+    private static void buildSosList(ByteBuffer dst, JsonDataList list) {
         dst.put(LIST_VALUE);
         // Move position so we can set size later on
         int listSizePosition = dst.position();
@@ -99,10 +99,10 @@ public class SosBuilder {
     private static void buildValue(ByteBuffer dst, Object value) {
         if (value instanceof JsonDataMap) {
             JsonDataMap map = (JsonDataMap) value;
-            buildCtofMap(dst, map);
+            buildSosMap(dst, map);
         } else if (value instanceof JsonDataList) {
             JsonDataList list = (JsonDataList) value;
-            buildCtofList(dst, list);
+            buildSosList(dst, list);
         } else if (value instanceof Byte) {
             dst.put(BYTE_VALUE);
             dst.put((Byte) value);

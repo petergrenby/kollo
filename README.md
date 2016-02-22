@@ -12,3 +12,7 @@ Off heap memory allocation with object (JSON structures) serialization/deseriali
 Simple Object Structure is a JSON like structure
 
 .h2 AVL-Tree
+
+`ByteBlockBufferManager memory = new ByteBlockBufferManager(1024*10);`
+`int blockPointer = SosBuilder.buildCtofByteBlockBuffer(memory, jdm);`
+`SosByteBlockBufferMap sos = new SosByteBlockBufferMap(memory, blockPointer);`

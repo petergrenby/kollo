@@ -52,7 +52,7 @@ public class SerializerApp {
         jdm.putMap("map", jdm2);
 
         ByteBlockBufferManager memory = new ByteBlockBufferManager(1024*10);
-        int blockPointer = SosBuilder.buildCtofByteBlockBuffer(memory, jdm);
+        int blockPointer = SimpleObjectStructure.buildSosByteBlockBuffer(memory, jdm);
         SosByteBlockBufferMap sos = new SosByteBlockBufferMap(memory, blockPointer);
 
         System.out.println(sos.toString());
