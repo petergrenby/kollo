@@ -23,7 +23,7 @@
  */
 package se.grenby.kollo.pomo.bbb;
 
-import se.grenby.kollo.bbbmanager.BbbMemoryReader;
+import se.grenby.kollo.bbbmanager.ByteBlockBufferReader;
 
 import java.nio.charset.StandardCharsets;
 
@@ -34,12 +34,12 @@ import static se.grenby.kollo.util.BitUtil.HEXES;
  * Created by peteri on 30/01/16.
  */
 public abstract class PomoByteBlockBufferObject {
-    protected final BbbMemoryReader blockReader;
+    protected final ByteBlockBufferReader blockReader;
     protected final int blockPointer;
     protected final int startBlockPosition;
     protected int blockPosition;
 
-    PomoByteBlockBufferObject(BbbMemoryReader block, int blockPointer, int position) {
+    PomoByteBlockBufferObject(ByteBlockBufferReader block, int blockPointer, int position) {
         this.blockReader = block;
         this.blockPointer = blockPointer;
         this.startBlockPosition = position;

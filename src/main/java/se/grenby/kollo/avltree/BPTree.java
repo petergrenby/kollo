@@ -46,18 +46,18 @@ public class BPTree {
 //    private static byte NODE_TYPE_INTERNAL = 5;
 //    private static byte NODE_TYPE_LEAF = 10;
 //
-//    private final ByteBlockAllocator allocator;
+//    private final ByteBlockBufferManager bbbmanager;
 //    private int rootBlockPointer;
 //
-//    public BPTree(ByteBlockAllocator allocator) {
-//        this.allocator = allocator;
+//    public BPTree(ByteBlockBufferManager bbbmanager) {
+//        this.bbbmanager = bbbmanager;
 //
-//        rootBlockPointer = createBucket(allocator, NODE_TYPE_LEAF);
+//        rootBlockPointer = createBucket(bbbmanager, NODE_TYPE_LEAF);
 //    }
 //
-//    private int createBucket(ByteBlockAllocator allocator, byte nodeType) {
-//        int p = allocator.allocateAndClear(SIZE_OF_BUCKET);
-//        allocator.putByte(p, RELATIVE_POINTER_BUCKET_TYPE, nodeType);
+//    private int createBucket(ByteBlockBufferManager bbbmanager, byte nodeType) {
+//        int p = bbbmanager.allocateAndClear(SIZE_OF_BUCKET);
+//        bbbmanager.putByte(p, RELATIVE_POINTER_BUCKET_TYPE, nodeType);
 //        return p;
 //    }
 //
@@ -70,16 +70,16 @@ public class BPTree {
 //            return INT_VALUE_FOR_NULL;
 //        }
 //
-//        boolean isLeafNode = allocator.getByte(bucketPointer, RELATIVE_POINTER_BUCKET_TYPE) == NODE_TYPE_LEAF;
+//        boolean isLeafNode = bbbmanager.getByte(bucketPointer, RELATIVE_POINTER_BUCKET_TYPE) == NODE_TYPE_LEAF;
 //        boolean valueFound = false;
 //        int valueBlockPointer = INT_VALUE_FOR_NULL;
 //        int slotNum = 0;
 //        while (slotNum < MAX_NUMBER_OF_SLOTS_IN_BUCKET && !valueFound) {
-//            int slotKey = allocator.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE);
+//            int slotKey = bbbmanager.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE);
 //            if (searchKey <= slotKey) {
 //                if (isLeafNode) {
 //                    if (searchKey == slotKey) {
-//                        valueBlockPointer = allocator.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT);
+//                        valueBlockPointer = bbbmanager.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT);
 //                        valueFound = true;
 //                    } else {
 //                        valueBlockPointer = INT_VALUE_FOR_NULL;
@@ -88,14 +88,14 @@ public class BPTree {
 //                } else {
 //                    // If key is less or equal the correct
 //                    // block is always the pointer before the key
-//                    int childBlockPointer = allocator.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT);
+//                    int childBlockPointer = bbbmanager.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT);
 //                    valueBlockPointer = searchBucketTree(childBlockPointer, searchKey);
 //                    valueFound = true;
 //                }
 //            } else {
 //                // If key is greater the correct block is after or in the next block
 //                if (slotNum == (MAX_NUMBER_OF_SLOTS_IN_BUCKET -1)) {
-//                    int nextBlockPointer = allocator.getInt(bucketPointer, RELATIVE_POINTER_NEXT_BUCKET);
+//                    int nextBlockPointer = bbbmanager.getInt(bucketPointer, RELATIVE_POINTER_NEXT_BUCKET);
 //                    valueBlockPointer = searchBucketTree(nextBlockPointer, searchKey);
 //                    valueFound = true;
 //                } else {
@@ -117,27 +117,27 @@ public class BPTree {
 //            return null;
 //        }
 //
-//        boolean isLeafNode = allocator.getByte(bucketPointer, RELATIVE_POINTER_BUCKET_TYPE) == NODE_TYPE_LEAF;
+//        boolean isLeafNode = bbbmanager.getByte(bucketPointer, RELATIVE_POINTER_BUCKET_TYPE) == NODE_TYPE_LEAF;
 //        boolean valueFound = false;
 //        SplitObj splitter = null;
 //        int slotNum = 0;
 //        while (slotNum < MAX_NUMBER_OF_SLOTS_IN_BUCKET && !valueFound) {
-//            int slotKey = allocator.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE);
+//            int slotKey = bbbmanager.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE);
 //            if (insertKey <= slotKey) {
 //                if (isLeafNode) {
 //                    if (insertKey == slotKey) {
 //                        splitter = new SplitObj();
-//                        splitter.oldValueBlock = allocator.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT);
-//                        allocator.putInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT, insertBlockPointer);
+//                        splitter.oldValueBlock = bbbmanager.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT);
+//                        bbbmanager.putInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT, insertBlockPointer);
 //                        valueFound = true;
 //                    } else {
-//                        byte slotCount = allocator.getByte(bucketPointer, RELATIVE_POINTER_SLOT_COUNT);
+//                        byte slotCount = bbbmanager.getByte(bucketPointer, RELATIVE_POINTER_SLOT_COUNT);
 //                        if (slotCount < MAX_NUMBER_OF_SLOTS_IN_BUCKET) {
 //                            insertInToBucket(bucketPointer, insertKey, insertBlockPointer, slotNum, slotCount);
 //                        } else {
 //                            int newBucketPointer = splitBucket(bucketPointer);
 //
-//                            slotCount = allocator.getByte(bucketPointer, RELATIVE_POINTER_SLOT_COUNT);
+//                            slotCount = bbbmanager.getByte(bucketPointer, RELATIVE_POINTER_SLOT_COUNT);
 //                            if (slotNum < slotCount) {
 //                                insertInToBucket(bucketPointer, insertKey, insertBlockPointer, slotNum, slotCount);
 //                            } else {
@@ -150,13 +150,13 @@ public class BPTree {
 //                        valueFound = true;
 //                    }
 //                } else {
-////                    int childBlockPointer = allocator.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT);
+////                    int childBlockPointer = bbbmanager.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT);
 ////                    valueBlockPointer = searchBucketTree(childBlockPointer, insertKey);
 ////                    valueFound = true;
 //                }
 //            } else {
 //                if (slotNum == (MAX_NUMBER_OF_SLOTS_IN_BUCKET -1)) {
-////                    int nextBlockPointer = allocator.getInt(bucketPointer, RELATIVE_POINTER_NEXT_BUCKET);
+////                    int nextBlockPointer = bbbmanager.getInt(bucketPointer, RELATIVE_POINTER_NEXT_BUCKET);
 ////                    valueBlockPointer = searchBucketTree(nextBlockPointer, insertKey);
 ////                    valueFound = true;
 //                } else {
@@ -169,33 +169,33 @@ public class BPTree {
 //    }
 //
 //    private int splitBucket(int oldBucketPointer) {
-//        int newBucketPointer = createBucket(allocator, NODE_TYPE_LEAF);
+//        int newBucketPointer = createBucket(bbbmanager, NODE_TYPE_LEAF);
 //        int slotsToMove = MAX_NUMBER_OF_SLOTS_IN_BUCKET - MAX_NUMBER_OF_SLOTS_IN_BUCKET/2;
 //        for (int i = 0; i < slotsToMove; i++) {
-//            int v = allocator.getInt(oldBucketPointer, RELATIVE_POINTER_SLOTS + (MAX_NUMBER_OF_SLOTS_IN_BUCKET/2+i)*SIZE_OF_SLOT);
-//            int k = allocator.getInt(oldBucketPointer, RELATIVE_POINTER_SLOTS + (MAX_NUMBER_OF_SLOTS_IN_BUCKET/2+i)*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE);
-//            allocator.putInt(newBucketPointer, RELATIVE_POINTER_SLOTS + i*SIZE_OF_SLOT, v);
-//            allocator.putInt(newBucketPointer, RELATIVE_POINTER_SLOTS + i*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE, k);
-//            allocator.putInt(oldBucketPointer, RELATIVE_POINTER_SLOTS + (MAX_NUMBER_OF_SLOTS_IN_BUCKET/2+i)*SIZE_OF_SLOT, 0);
-//            allocator.putInt(oldBucketPointer, RELATIVE_POINTER_SLOTS + (MAX_NUMBER_OF_SLOTS_IN_BUCKET/2+i)*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE, 0);
+//            int v = bbbmanager.getInt(oldBucketPointer, RELATIVE_POINTER_SLOTS + (MAX_NUMBER_OF_SLOTS_IN_BUCKET/2+i)*SIZE_OF_SLOT);
+//            int k = bbbmanager.getInt(oldBucketPointer, RELATIVE_POINTER_SLOTS + (MAX_NUMBER_OF_SLOTS_IN_BUCKET/2+i)*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE);
+//            bbbmanager.putInt(newBucketPointer, RELATIVE_POINTER_SLOTS + i*SIZE_OF_SLOT, v);
+//            bbbmanager.putInt(newBucketPointer, RELATIVE_POINTER_SLOTS + i*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE, k);
+//            bbbmanager.putInt(oldBucketPointer, RELATIVE_POINTER_SLOTS + (MAX_NUMBER_OF_SLOTS_IN_BUCKET/2+i)*SIZE_OF_SLOT, 0);
+//            bbbmanager.putInt(oldBucketPointer, RELATIVE_POINTER_SLOTS + (MAX_NUMBER_OF_SLOTS_IN_BUCKET/2+i)*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE, 0);
 //        }
-//        allocator.putInt(oldBucketPointer, RELATIVE_POINTER_SLOT_COUNT, MAX_NUMBER_OF_SLOTS_IN_BUCKET/2);
-//        allocator.putInt(newBucketPointer, RELATIVE_POINTER_SLOT_COUNT, slotsToMove);
+//        bbbmanager.putInt(oldBucketPointer, RELATIVE_POINTER_SLOT_COUNT, MAX_NUMBER_OF_SLOTS_IN_BUCKET/2);
+//        bbbmanager.putInt(newBucketPointer, RELATIVE_POINTER_SLOT_COUNT, slotsToMove);
 //        return newBucketPointer;
 //    }
 //
 //    private void insertInToBucket(int bucketPointer, int insertKey, int insertBlockPointer, int slotNum, byte slotCount) {
 //        // Move all bigger keys and their values one slot up
 //        for (int i = slotCount; i > slotNum; i--) {
-//            int v = allocator.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + (i-1)*SIZE_OF_SLOT);
-//            int k = allocator.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + (i-1)*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE);
-//            allocator.putInt(bucketPointer, RELATIVE_POINTER_SLOTS + i*SIZE_OF_SLOT, v);
-//            allocator.putInt(bucketPointer, RELATIVE_POINTER_SLOTS + i*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE, k);
+//            int v = bbbmanager.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + (i-1)*SIZE_OF_SLOT);
+//            int k = bbbmanager.getInt(bucketPointer, RELATIVE_POINTER_SLOTS + (i-1)*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE);
+//            bbbmanager.putInt(bucketPointer, RELATIVE_POINTER_SLOTS + i*SIZE_OF_SLOT, v);
+//            bbbmanager.putInt(bucketPointer, RELATIVE_POINTER_SLOTS + i*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE, k);
 //        }
-//        allocator.putInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT, insertBlockPointer);
-//        allocator.putInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE, insertKey);
+//        bbbmanager.putInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT, insertBlockPointer);
+//        bbbmanager.putInt(bucketPointer, RELATIVE_POINTER_SLOTS + slotNum*SIZE_OF_SLOT + SIZE_OF_SLOT_VALUE, insertKey);
 //
-//        allocator.putInt(bucketPointer, RELATIVE_POINTER_SLOT_COUNT, slotCount+1);
+//        bbbmanager.putInt(bucketPointer, RELATIVE_POINTER_SLOT_COUNT, slotCount+1);
 //    }
 //
 //    private static class SplitObj {

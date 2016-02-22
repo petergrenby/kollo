@@ -23,14 +23,12 @@
  */
 package se.grenby.kollo;
 
-import se.grenby.kollo.allocator.ByteBlockAllocator;
-import se.grenby.kollo.ctof.*;
-import se.grenby.kollo.ctof.CtofDataList;
-import se.grenby.kollo.ctof.CtofDataMap;
+import se.grenby.kollo.bbbmanager.ByteBlockBufferManager;
+import se.grenby.kollo.pomo.*;
+import se.grenby.kollo.pomo.bbb.PomoByteBlockBufferList;
+import se.grenby.kollo.pomo.bbb.PomoByteBlockBufferMap;
 import se.grenby.kollo.json.JsonDataList;
 import se.grenby.kollo.json.JsonDataMap;
-
-import java.nio.ByteBuffer;
 
 /**
  * Created by peteri on 27/11/15.
@@ -53,26 +51,25 @@ public class SerializerApp {
         jdm2.putString("st2", "we dooo2").putString("st3", "we dooo3");
         jdm.putMap("map", jdm2);
 
-        ByteBuffer buffer = CtofBuilder.buildCtof(jdm);
-        ByteBlockAllocator allocator = new ByteBlockAllocator(1024*10);
-        int blockPointer = allocator.allocateAndClone(buffer);
-        CtofDataMap bpo = new CtofDataMap(allocator, blockPointer);
+        ByteBlockBufferManager memory = new ByteBlockBufferManager(1024*10);
+        int blockPointer = PomoBuilder.buildCtofByteBlockBuffer(memory, jdm);
+        PomoByteBlockBufferMap ctof = new PomoByteBlockBufferMap(memory, blockPointer);
 
-        System.out.println(bpo.toString());
+        System.out.println(ctof.toString());
         System.out.println();
-        System.out.println("Byte -->" + bpo.getByteValue("by") + "<--");
-        System.out.println("Short -->" + bpo.getShortValue("sh") + "<--");
-        System.out.println("Integer -->" + bpo.getIntValue("in") + "<--");
-        System.out.println("Long -->" + bpo.getLongValue("lo") + "<--");
-        System.out.println("Float -->" + bpo.getFloatValue("fl") + "<--");
-        System.out.println("Double -->" + bpo.getDoubleValue("do") + "<--");
-        System.out.println("String -->" + bpo.getStringValue("st") + "<--");
+        System.out.println("Byte -->" + ctof.getByteValue("by") + "<--");
+        System.out.println("Short -->" + ctof.getShortValue("sh") + "<--");
+        System.out.println("Integer -->" + ctof.getIntValue("in") + "<--");
+        System.out.println("Long -->" + ctof.getLongValue("lo") + "<--");
+        System.out.println("Float -->" + ctof.getFloatValue("fl") + "<--");
+        System.out.println("Double -->" + ctof.getDoubleValue("do") + "<--");
+        System.out.println("String -->" + ctof.getStringValue("st") + "<--");
 
-        CtofDataMap bpo2 = bpo.getMapValue("map");
+        PomoByteBlockBufferMap bpo2 = ctof.getMapValue("map");
         System.out.println("In map -->" + bpo2.getStringValue("st2") + "<--");
         System.out.println("In map -->" + bpo2.getStringValue("st3") + "<--");
 
-        CtofDataList bpl = bpo.getListValue("list");
+        PomoByteBlockBufferList bpl = ctof.getListValue("list");
         System.out.println("Has list -->" + bpl.hasNext() + "<--");
         System.out.println("In list -->" + bpl.getNextByteValue() + "<--");
         System.out.println("In list -->" + bpl.getNextShortValue() + "<--");
@@ -83,11 +80,11 @@ public class SerializerApp {
         System.out.println("In list -->" + bpl.getNextDoubleValue() + "<--");
         System.out.println("Has list -->" + bpl.hasNext() + "<--");
 
-        System.out.println(allocator.memStructureToString());
+        System.out.println(memory.memStructureToString());
 
-        JsonDataMap jdme = bpo.extractJSonDataMap();
+        JsonDataMap jdme = ctof.extractJSonDataMap();
 
-        allocator.free(blockPointer);
+        memory.free(blockPointer);
 
         System.out.println("by -- > " + jdme.getByte("by"));
     }

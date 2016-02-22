@@ -23,7 +23,7 @@
  */
 package se.grenby.kollo.pomo.bbb;
 
-import se.grenby.kollo.bbbmanager.BbbMemoryReader;
+import se.grenby.kollo.bbbmanager.ByteBlockBufferReader;
 import se.grenby.kollo.json.JsonDataList;
 
 import static se.grenby.kollo.pomo.PomoConstants.*;
@@ -33,13 +33,13 @@ import static se.grenby.kollo.pomo.PomoConstants.FLOAT_VALUE;
 /**
  * Created by peteri on 07/02/16.
  */
-public class PomoByteBlockBufferList extends PomoBbbObject {
+public class PomoByteBlockBufferList extends PomoByteBlockBufferObject {
 
     private final int listStartPosition;
     private final int listTotalLength;
     private int nextElementPosition;
 
-    PomoByteBlockBufferList(BbbMemoryReader reader, int blockPointer, int position) {
+    PomoByteBlockBufferList(ByteBlockBufferReader reader, int blockPointer, int position) {
         super(reader, blockPointer, position);
 
         byte valueType = reader.getByte(blockPointer, blockPosition);
@@ -54,8 +54,8 @@ public class PomoByteBlockBufferList extends PomoBbbObject {
         }
     }
 
-    public PomoBbbMap getNextMapValue() {
-        return getNextValue(PomoBbbMap.class);
+    public PomoByteBlockBufferMap getNextMapValue() {
+        return getNextValue(PomoByteBlockBufferMap.class);
     }
 
     public PomoByteBlockBufferList getNextListValue() {
@@ -110,7 +110,7 @@ public class PomoByteBlockBufferList extends PomoBbbObject {
             int valueType = blockReader.getByte(blockPointer, blockPosition);
             blockPosition += Byte.BYTES;
             if (valueType == MAP_VALUE) {
-                value = klass.cast(new PomoBbbMap(blockReader, blockPointer, valuePosition));
+                value = klass.cast(new PomoByteBlockBufferMap(blockReader, blockPointer, valuePosition));
             } else if (valueType == LIST_VALUE) {
                 value = klass.cast(new PomoByteBlockBufferList(blockReader, blockPointer, valuePosition));
             } else {
@@ -133,7 +133,7 @@ public class PomoByteBlockBufferList extends PomoBbbObject {
             int valueType = blockReader.getByte(blockPointer, blockPosition);
             blockPosition += Byte.BYTES;
             if (valueType == MAP_VALUE) {
-                PomoBbbMap cdm = new PomoBbbMap(blockReader, blockPointer, valuePosition);
+                PomoByteBlockBufferMap cdm = new PomoByteBlockBufferMap(blockReader, blockPointer, valuePosition);
                 list.addMap(cdm.extractJSonDataMap());
                 skipMapOrListValueInByteBuffer();
             } else if (valueType == LIST_VALUE) {

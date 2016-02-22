@@ -9,14 +9,14 @@ public class JAllocatorTest {
 
     @Test
     public void testAlloction() {
-        BBBMemoryAllocator ja = new BBBMemoryManager(1024);
+        ByteBlockBufferAllocator ja = new ByteBlockBufferManager(1024);
 
         int p1 = ja.allocate(100);
     }
 
     @Test
     public void testAlloctionAndFree() {
-        BBBMemoryManager ja = new BBBMemoryManager(1024);
+        ByteBlockBufferManager ja = new ByteBlockBufferManager(1024);
 
         int p1 = ja.allocate(100);
         ja.free(p1);

@@ -34,7 +34,7 @@ import static se.grenby.kollo.constant.PrimitiveConstants.INT_VALUE_FOR_NULL;
 /**
  * Created by peteri on 23/10/15.
  */
-public class ByteBlockBufferManager implements BbbMemoryAllocator, BbbMemoryReader {
+public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlockBufferReader {
 
     private final static Logger logger = Logger.getLogger(ByteBlockBufferManager.class.getName());
 

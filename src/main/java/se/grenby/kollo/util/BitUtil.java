@@ -27,6 +27,9 @@ package se.grenby.kollo.util;
  * Created by peteri on 24/10/15.
  */
 public class BitUtil {
+
+    public static final char[] HEXES = "0123456789ABCDEF".toCharArray();
+
     private final static int BITS_IN_SIGNED_INTEGER = 31;
 
     /**

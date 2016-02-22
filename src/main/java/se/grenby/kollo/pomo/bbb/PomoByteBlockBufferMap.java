@@ -23,7 +23,7 @@
  */
 package se.grenby.kollo.pomo.bbb;
 
-import se.grenby.kollo.bbbmanager.BbbMemoryReader;
+import se.grenby.kollo.bbbmanager.ByteBlockBufferReader;
 import se.grenby.kollo.json.JsonDataMap;
 
 import static se.grenby.kollo.pomo.PomoConstants.*;
@@ -36,11 +36,11 @@ public class PomoByteBlockBufferMap extends PomoByteBlockBufferObject {
     private final int mapStartPosition;
     private final int mapTotalLength;
 
-    public PomoByteBlockBufferMap(BbbMemoryReader reader, int blockPointer) {
+    public PomoByteBlockBufferMap(ByteBlockBufferReader reader, int blockPointer) {
         this(reader, blockPointer, 0);
     }
 
-    public PomoByteBlockBufferMap(BbbMemoryReader reader, int blockPointer, int position) {
+    public PomoByteBlockBufferMap(ByteBlockBufferReader reader, int blockPointer, int position) {
         super(reader, blockPointer, position);
 
         byte valueType = blockReader.getByte(blockPointer, blockPosition);

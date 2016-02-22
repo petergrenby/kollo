@@ -23,8 +23,8 @@
  */
 package se.grenby.kollo.pomo;
 
-import se.grenby.kollo.bbbmanager.BbbMemoryAllocator;
-import se.grenby.kollo.pomo.bytebuffer.CtofByteBufferMap;
+import se.grenby.kollo.bbbmanager.ByteBlockBufferAllocator;
+import se.grenby.kollo.pomo.bytebuffer.PomoByteBufferMap;
 import se.grenby.kollo.json.JsonDataList;
 import se.grenby.kollo.json.JsonDataMap;
 
@@ -42,16 +42,16 @@ public class PomoBuilder {
     private static final int MAX_BYTES_CTOF_OBJECT = Short.MAX_VALUE;
     private static ThreadLocal<ByteBuffer> buffers = new ThreadLocal<>();
 
-    public static CtofByteBufferMap buildCtofByteBuffer(JsonDataMap map) {
+    public static PomoByteBufferMap buildCtofByteBuffer(JsonDataMap map) {
         ByteBuffer buffer = getByteBuffer();
 
         buildCtofMap(buffer, map);
         buffer.flip();
 
-        return new CtofByteBufferMap(buffer);
+        return new PomoByteBufferMap(buffer);
     }
 
-    public static int buildCtofByteBlockBuffer(BbbMemoryAllocator allocator, JsonDataMap map) {
+    public static int buildCtofByteBlockBuffer(ByteBlockBufferAllocator allocator, JsonDataMap map) {
         ByteBuffer buffer = getByteBuffer();
 
         buildCtofMap(buffer, map);

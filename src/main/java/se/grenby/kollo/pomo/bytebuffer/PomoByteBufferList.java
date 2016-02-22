@@ -32,7 +32,7 @@ import static se.grenby.kollo.pomo.PomoConstants.*;
 /**
  * Created by peteri on 07/02/16.
  */
-public class PomoByteBufferList extends CtofByteBufferObject {
+public class PomoByteBufferList extends PomoByteBufferObject {
 
     private final int listStartPosition;
     private final int listTotalLength;
@@ -53,8 +53,8 @@ public class PomoByteBufferList extends CtofByteBufferObject {
         }
     }
 
-    public CtofByteBufferMap getNextMapValue() {
-        return getNextValue(CtofByteBufferMap.class);
+    public PomoByteBufferMap getNextMapValue() {
+        return getNextValue(PomoByteBufferMap.class);
     }
 
     public PomoByteBufferList getNextListValue() {
@@ -109,7 +109,7 @@ public class PomoByteBufferList extends CtofByteBufferObject {
             int valueType = buffer.get(blockPosition);
             blockPosition += Byte.BYTES;
             if (valueType == MAP_VALUE) {
-                value = klass.cast(new CtofByteBufferMap(buffer, valuePosition));
+                value = klass.cast(new PomoByteBufferMap(buffer, valuePosition));
             } else if (valueType == LIST_VALUE) {
                 value = klass.cast(new PomoByteBufferList(buffer, valuePosition));
             } else {
@@ -132,7 +132,7 @@ public class PomoByteBufferList extends CtofByteBufferObject {
             int valueType = buffer.get(blockPosition);
             blockPosition += Byte.BYTES;
             if (valueType == MAP_VALUE) {
-                CtofByteBufferMap cdm = new CtofByteBufferMap(buffer, valuePosition);
+                PomoByteBufferMap cdm = new PomoByteBufferMap(buffer, valuePosition);
                 list.addMap(cdm.extractJSonDataMap());
                 skipMapOrListValueInByteBuffer();
             } else if (valueType == LIST_VALUE) {

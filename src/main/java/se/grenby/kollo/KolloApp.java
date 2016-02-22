@@ -23,7 +23,7 @@
  */
 package se.grenby.kollo;
 
-import se.grenby.kollo.allocator.ByteBlockAllocator;
+import se.grenby.kollo.bbbmanager.ByteBlockBufferManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -32,7 +32,7 @@ import java.util.List;
 public class KolloApp
 {
     public static void main( String args[] ) throws Exception {
-        ByteBlockAllocator joh = new ByteBlockAllocator(1024);
+        ByteBlockBufferManager joh = new ByteBlockBufferManager(1024);
 
         int p1 = joh.allocate(300);
         System.out.println(p1);
@@ -68,7 +68,7 @@ public class KolloApp
         System.out.println(joh.memStructureToString());
 
         List<Integer> pointers = new ArrayList<>(2000);
-        joh = new ByteBlockAllocator(1024*1024*1024);
+        joh = new ByteBlockBufferManager(1024*1024*1024);
         for (int i=0; i<2000; i++) {
             pointers.add(joh.allocate(1024));
         }
