@@ -74,10 +74,10 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
         blockBuffer.putInt(voidPointer, RELATIVE_POINTER_PREVIOUS, INT_VALUE_FOR_NULL);
         blockBuffer.putInt(voidPointer, RELATIVE_POINTER_NEXT, INT_VALUE_FOR_NULL);
 
-        System.out.println("Total capacity " + blockBuffer.getCapacity());
-        System.out.println("Number of bins " + numberOfBins);
-        System.out.println("Bin-block pointer " + binBlockPointer);
-        System.out.println("Void-block starts " + voidPointer);
+        logger.info("Total capacity " + blockBuffer.getCapacity());
+        logger.info("Number of bins " + numberOfBins);
+        logger.info("Bin-block pointer " + binBlockPointer);
+        logger.info("Void-block starts " + voidPointer);
     }
 
     @Override

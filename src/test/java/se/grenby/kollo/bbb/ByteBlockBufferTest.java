@@ -1,6 +1,8 @@
 package se.grenby.kollo.bbb;
 
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import static org.junit.Assert.*;
 import static se.grenby.kollo.bbb.ByteBlockBuffer.BLOCK_OVERHEAD_IN_BYTES;
@@ -8,16 +10,17 @@ import static se.grenby.kollo.bbb.ByteBlockBuffer.BLOCK_OVERHEAD_IN_BYTES;
 /**
  * Created by peteri on 24/11/15.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ByteBlockBufferTest {
 
     @Test
-    public void testCreatingBuffer() {
+    public void test1CreatingBuffer() {
         ByteBlockBuffer b = new ByteBlockBuffer(1000);
         assertEquals("At start there should be one block and nothing but one block", 1, b.countBlocks());
     }
 
     @Test
-    public void testSplitBlock() {
+    public void test2SplitBlock() {
         final int totalSize = 100*2+BLOCK_OVERHEAD_IN_BYTES*2;
 
         ByteBlockBuffer b = new ByteBlockBuffer(totalSize);
@@ -32,7 +35,7 @@ public class ByteBlockBufferTest {
     }
 
     @Test
-    public void testSplitAndMergeBlock() {
+    public void test3SplitAndMergeBlock() {
         final int expectedSize = 100;
         final int totalSize = expectedSize*2+BLOCK_OVERHEAD_IN_BYTES*2;
 
@@ -54,7 +57,7 @@ public class ByteBlockBufferTest {
     }
 
     @Test
-    public void testMultipleSplitAndMergeBlock() {
+    public void test4MultipleSplitAndMergeBlock() {
         final int expectedSize = 100;
         final int totalSize = expectedSize*4+BLOCK_OVERHEAD_IN_BYTES*4;
 
