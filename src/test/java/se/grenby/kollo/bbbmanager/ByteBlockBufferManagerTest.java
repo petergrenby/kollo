@@ -92,9 +92,11 @@ public class ByteBlockBufferManagerTest {
 
         assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
 
+        int i = 1;
         for (int p : pointers) {
             boolean r = bbbm.free(p);
             assertTrue("Deallocation was unsuccessful", r);
+            i++;
         }
 
         assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());

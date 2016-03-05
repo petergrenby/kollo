@@ -30,6 +30,7 @@ import static se.grenby.kollo.constant.PrimitiveConstants.INT_VALUE_FOR_NULL;
  * Created by peteri on 01/11/15.
  */
 public class ByteBlockBuffer {
+    private final static int MAX_ALLOWED_CAPACITY = 1073741824; // 2^30
     private final static int BLOCK_SIZE_IN_BYTES = Integer.BYTES;
     public final static int BLOCK_OVERHEAD_IN_BYTES = BLOCK_SIZE_IN_BYTES*2;
 
@@ -38,6 +39,14 @@ public class ByteBlockBuffer {
     private final int firstBlockPointer;
 
     public ByteBlockBuffer(final int capacity) {
+        if (capacity < 0) {
+            throw new IllegalArgumentException("Requested capacity can not be a negativ value");
+        }
+
+        if (capacity > MAX_ALLOWED_CAPACITY) {
+            throw new IllegalArgumentException("Requested capacity can not be greater than 2 to the power of 30");
+        }
+
         bufferCapacity = capacity;
         buffer = ByteBuffer.allocateDirect(capacity);
         firstBlockPointer = BLOCK_SIZE_IN_BYTES;
@@ -67,13 +76,13 @@ public class ByteBlockBuffer {
         if (previousPointer >= BLOCK_SIZE_IN_BYTES) {
             return previousPointer;
         } else {
-            throw new IllegalStateException("Integrity of block bbb is compromised");
+            throw new IllegalStateException("Integrity of block is compromised");
         }
     }
 
     public int nextBlock(int pointer) {
         if (!isCorrectBlock(pointer)) {
-            throw new IllegalStateException("Integrity of block bbb is compromised. Pointer = " + pointer + " size " + getBlockSize(pointer));
+            throw new IllegalStateException("Integrity of block is compromised. Pointer = " + pointer + " size " + getBlockSize(pointer));
         }
 
         int size = getBlockSize(pointer);
@@ -84,7 +93,7 @@ public class ByteBlockBuffer {
         } else if (nextPointer == bufferCapacity + BLOCK_SIZE_IN_BYTES) {
             return INT_VALUE_FOR_NULL;
         } else {
-            throw new IllegalStateException("Integrity of block bbb is compromised");
+            throw new IllegalStateException("Integrity of block is compromised");
         }
     }
 
@@ -163,9 +172,11 @@ public class ByteBlockBuffer {
     public boolean verfiyIntegrity() {
         boolean correct = true;
         int p = firstBlockPointer;
-        while (!correct || p != INT_VALUE_FOR_NULL) {
+        while (correct && p != INT_VALUE_FOR_NULL) {
             correct = isCorrectBlock(p);
-            p = nextBlock(p);
+            if (correct) {
+                p = nextBlock(p);
+            }
         }
         return correct;
     }
@@ -231,13 +242,6 @@ public class ByteBlockBuffer {
         buffer.position(blockPointer + position);
         buffer.get(bs, 0, length);
         return bs;
-    }
-
-    public void setPosition(int blockPointer, int position) {
-        if (position < 0) {
-            throw new IllegalArgumentException("Negativ value for position is not allowed");
-        }
-        buffer.position(blockPointer + position);
     }
 
     public void putShort(int blockPointer, int position, short value) {

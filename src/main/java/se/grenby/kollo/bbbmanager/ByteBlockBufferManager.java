@@ -182,9 +182,13 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
                 pointerPreviousBlock = blockBuffer.getInt(blockPointer, RELATIVE_POINTER_PREVIOUS);
                 pointerNextBlock = blockBuffer.getInt(blockPointer, RELATIVE_POINTER_NEXT);
 
-                // Attach prvious and next block to empty block
-                blockBuffer.putInt(pointerPreviousBlock, RELATIVE_POINTER_NEXT, attachPointer);
-                blockBuffer.putInt(pointerNextBlock, RELATIVE_POINTER_PREVIOUS, attachPointer);
+                // Attach previous and next block to empty block
+                if (pointerPreviousBlock != INT_VALUE_FOR_NULL) {
+                    blockBuffer.putInt(pointerPreviousBlock, RELATIVE_POINTER_NEXT, attachPointer);
+                }
+                if (pointerNextBlock != INT_VALUE_FOR_NULL) {
+                    blockBuffer.putInt(pointerNextBlock, RELATIVE_POINTER_PREVIOUS, attachPointer);
+                }
             }
         }
 
