@@ -28,6 +28,8 @@ bbbm.deallocate(blockPointer);
 ## Simple Object Structure
 Handling an Byte Block Buffer manually is difficult and error prone. So a way to push object like data and read them from the block is needed.
 Simple Object Structure (SOS) is a immutable JSON like structure. It can create SOS object on-heap and off-heap.
+SOS objects are really useful even if one do not push them off-heap. The main reason for this is that the overhead, compared JSON object graphs (30-40 bytes of overhead per object in the graph), is extremely small.
+Even for a big JSON-structure, with list and maps in maps, there is still just a few bytes of overhead in total.
 
 To create SOS objects helper classes JSonDataMap and JSonDataList exist. These can be used to create JSon structured data like this:
 ````java
