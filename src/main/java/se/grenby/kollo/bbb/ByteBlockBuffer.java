@@ -38,6 +38,8 @@ public class ByteBlockBuffer {
     private final ByteBuffer buffer;
     private final int firstBlockPointer;
 
+    private int numberOfBlocks;
+
     public ByteBlockBuffer(final int capacity) {
         if (capacity < 0) {
             throw new IllegalArgumentException("Requested capacity can not be a negativ value");
@@ -51,6 +53,7 @@ public class ByteBlockBuffer {
         buffer = ByteBuffer.allocateDirect(capacity);
         firstBlockPointer = BLOCK_SIZE_IN_BYTES;
         putSizeInBlock(firstBlockPointer, capacity - BLOCK_SIZE_IN_BYTES*2);
+        numberOfBlocks = 1;
     }
 
     public int getCapacity() {
@@ -119,6 +122,8 @@ public class ByteBlockBuffer {
 
         putSizeInBlock(voidPointer, voidSize);
 
+        numberOfBlocks++;
+
         return voidPointer;
     }
 
@@ -133,6 +138,8 @@ public class ByteBlockBuffer {
         int size = size1 + size2 + BLOCK_SIZE_IN_BYTES*2;
 
         putSizeInBlock(pointer1, size);
+
+        numberOfBlocks--;
 
         return pointer1;
     }
@@ -171,27 +178,26 @@ public class ByteBlockBuffer {
 
     public boolean verfiyIntegrity() {
         boolean correct = true;
+
+        int num = 0;
         int p = firstBlockPointer;
         while (correct && p != INT_VALUE_FOR_NULL) {
             correct = isCorrectBlock(p);
             if (correct) {
                 p = nextBlock(p);
+                num++;
             }
         }
+
+        if (numberOfBlocks != num) {
+            correct = false;
+        }
+
         return correct;
     }
 
-    public int countBlocks() {
-        int num = 0;
-        int p = firstBlockPointer;
-        while (p != INT_VALUE_FOR_NULL) {
-            if (!isCorrectBlock(p)) {
-                throw new IllegalStateException("Blockbuffer blocks are corrupt");
-            }
-            num++;
-            p = nextBlock(p);
-        }
-        return num;
+    public int getNumberOfBlocks () {
+        return numberOfBlocks;
     }
 
     public String blockStructureToString() {
@@ -226,15 +232,6 @@ public class ByteBlockBuffer {
     public void putBuffer(int blockPointer, int position, ByteBuffer src) {
         buffer.position(blockPointer + position);
         buffer.put(src);
-    }
-
-    public int getPosition(int blockPointer) {
-        int pos = buffer.position() - blockPointer;
-        if (pos < 0) {
-            pos = 0;
-            buffer.position(blockPointer);
-        }
-        return pos;
     }
 
     public byte[] getBytes(int blockPointer, int position, int length) {

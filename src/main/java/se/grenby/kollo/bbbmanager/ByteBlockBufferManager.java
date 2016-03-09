@@ -52,21 +52,32 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
     private final static int RELATIVE_POINTER_NEXT = RELATIVE_POINTER_PREVIOUS + Integer.BYTES;
     private final static int RELATIVE_POINTER_VOID_SPACE = RELATIVE_POINTER_NEXT + Byte.BYTES;
 
+    public final static int MANAGED_BLOCK_OVERHEAD_IN_BYTES = RELATIVE_POINTER_PAYLOAD + ByteBlockBuffer.BLOCK_OVERHEAD_IN_BYTES;
+
     private final ByteBlockBuffer blockBuffer;
+    private final int sizeOfBinBlock;
     private final int numberOfBins;
     private final int binBlockPointer;
+
+    private int numberOfAllocatedBlocks = 0;
+    private int totalSizeOfAllocatedBlocks = 0;
+    private int numberOfBlocksInBins = 0;
+    private int totalSizeOfBlocksInBins = 0;
 
     public ByteBlockBufferManager(final int capacity) {
         blockBuffer = new ByteBlockBuffer(capacity);
 
         numberOfBins = BitUtil.numberOfBitsNeeded(blockBuffer.getCapacity());
         binBlockPointer = blockBuffer.getFirstBlock();
-        int voidPointer = blockBuffer.splitBlock(binBlockPointer, numberOfBins*Integer.BYTES);
 
+        // Spilt first block to bin-block and void-block
+        int voidPointer = blockBuffer.splitBlock(binBlockPointer, numberOfBins*Integer.BYTES);
+        sizeOfBinBlock = numberOfBins*Integer.BYTES;
+
+        // Set all bins to NULL
         for (int i=0; i<numberOfBins; i++) {
             blockBuffer.putInt(binBlockPointer, i*Integer.BYTES, INT_VALUE_FOR_NULL);
         }
-        blockBuffer.putInt(binBlockPointer, (numberOfBins-1)*Integer.BYTES, voidPointer);
 
         // Set values in empty block (size of block, pointer to previous block, pointer to next block)
         // Remove size value from size of block
@@ -74,10 +85,25 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
         blockBuffer.putInt(voidPointer, RELATIVE_POINTER_PREVIOUS, INT_VALUE_FOR_NULL);
         blockBuffer.putInt(voidPointer, RELATIVE_POINTER_NEXT, INT_VALUE_FOR_NULL);
 
-        logger.info("Total capacity " + blockBuffer.getCapacity());
-        logger.info("Number of bins " + numberOfBins);
-        logger.info("Bin-block pointer " + binBlockPointer);
-        logger.info("Void-block starts " + voidPointer);
+        // Attach void-block to bins
+        attachBlockToBins(voidPointer);
+        String details = getDetailsAsString();
+
+
+        logger.info(details);
+    }
+
+    public String getDetailsAsString() {
+        // Print manager details
+        StringBuilder sb = new StringBuilder("BBB manager details \n");
+        sb.append("Total capacity: " + blockBuffer.getCapacity() + "\n");
+        sb.append("Number of bins: " + numberOfBins + "\n");
+        sb.append("Bin-block pointer: " + binBlockPointer + "\n");
+        sb.append("# allocated blocks: " + numberOfAllocatedBlocks + "\n");
+        sb.append("Total allocated size: " + totalSizeOfAllocatedBlocks + "\n");
+        sb.append("# blocks in bins: " + numberOfBlocksInBins + "\n");
+        sb.append("Total size in bins: " + totalSizeOfBlocksInBins + "\n");
+        return sb.toString();
     }
 
     @Override
@@ -85,14 +111,18 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
         // find smallest block that is big enough in the bin
         int blockPointer = findLeastSizedBlockBins(sizeOfPayload + RELATIVE_POINTER_PAYLOAD);
         if (blockPointer != INT_VALUE_FOR_NULL) {
-            detachBlockFromList(blockPointer);
+            detachBlockFromBins(blockPointer);
 
-            // allocate memory from the block and return excessive memory
+            // allocate memory from the block and return excessive memory to bins
             int sizeOfBlock = blockBuffer.getBlockSize(blockPointer);
             if ((sizeOfBlock-sizeOfPayload) > (RELATIVE_POINTER_VOID_SPACE + RELATIVE_POINTER_PAYLOAD + SMALLEST_BLOCK_SIZE)) {
-                int excessiveBlockPointer = blockBuffer.splitBlock(blockPointer, sizeOfPayload + RELATIVE_POINTER_PAYLOAD);
-                attachBlockToList(excessiveBlockPointer);
+                sizeOfBlock = sizeOfPayload + RELATIVE_POINTER_PAYLOAD;
+                int excessiveBlockPointer = blockBuffer.splitBlock(blockPointer, sizeOfBlock);
+                attachBlockToBins(excessiveBlockPointer);
             }
+
+            numberOfAllocatedBlocks++;
+            totalSizeOfAllocatedBlocks += sizeOfBlock;
 
             blockBuffer.putByte(blockPointer, RELATIVE_POINTER_STATUS, BYTE_STATUS_OCCUPIED);
             return blockPointer;
@@ -119,18 +149,19 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
         return pointer;
     }
 
-    public boolean free(int blockPointer) {
+    public boolean deallocate(int blockPointer) {
         if (blockPointer == INT_VALUE_FOR_NULL) {
             return false;
         }
 
+        int sizeOfBlock = blockBuffer.getBlockSize(blockPointer);
         byte status = blockBuffer.getByte(blockPointer, RELATIVE_POINTER_STATUS);
         if (status == BYTE_STATUS_OCCUPIED) {
             int blockPointerPrevious = blockBuffer.previousBlock(blockPointer);
             if (blockPointerPrevious != binBlockPointer) {
                 byte statusPrevious = blockBuffer.getByte(blockPointerPrevious, RELATIVE_POINTER_STATUS);
                 if (statusPrevious == BYTE_STATUS_FREE) {
-                    detachBlockFromList(blockPointerPrevious);
+                    detachBlockFromBins(blockPointerPrevious);
                     blockBuffer.mergeBlocks(blockPointerPrevious, blockPointer);
                     blockPointer = blockPointerPrevious;
                 }
@@ -140,13 +171,16 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
             if (blockPointerNext != INT_VALUE_FOR_NULL) {
                 byte statusNext = blockBuffer.getByte(blockPointerNext, RELATIVE_POINTER_STATUS);
                 if (statusNext == BYTE_STATUS_FREE) {
-                    detachBlockFromList(blockPointerNext);
+                    detachBlockFromBins(blockPointerNext);
                     blockBuffer.mergeBlocks(blockPointer, blockPointerNext);
                 }
             }
 
-            attachBlockToList(blockPointer);
             blockBuffer.putByte(blockPointer, RELATIVE_POINTER_STATUS, BYTE_STATUS_FREE);
+            attachBlockToBins(blockPointer);
+
+            numberOfAllocatedBlocks--;
+            totalSizeOfAllocatedBlocks -= sizeOfBlock;
 
             return true;
         } else {
@@ -154,9 +188,9 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
         }
     }
 
-    private void attachBlockToList(int attachPointer) {
+    private void attachBlockToBins(int attachPointer) {
         int attachSize = blockBuffer.getBlockSize(attachPointer);
-        int binIndex = BitUtil.numberOfBitsNeeded(attachSize) - 1;
+        int binIndex = binIndexFromSize(attachSize);
         int blockPointer = blockBuffer.getInt(binBlockPointer, binIndex*Integer.BYTES);
 
         int pointerPreviousBlock = INT_VALUE_FOR_NULL;
@@ -183,7 +217,9 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
                 pointerNextBlock = blockBuffer.getInt(blockPointer, RELATIVE_POINTER_NEXT);
 
                 // Attach previous and next block to empty block
-                if (pointerPreviousBlock != INT_VALUE_FOR_NULL) {
+                if (pointerPreviousBlock == INT_VALUE_FOR_NULL) {
+                    blockBuffer.putInt(binBlockPointer, binIndex*Integer.BYTES, attachPointer);
+                } else {
                     blockBuffer.putInt(pointerPreviousBlock, RELATIVE_POINTER_NEXT, attachPointer);
                 }
                 if (pointerNextBlock != INT_VALUE_FOR_NULL) {
@@ -195,17 +231,24 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
         // Set correct size and pointers into empty block
         blockBuffer.putInt(attachPointer, RELATIVE_POINTER_PREVIOUS, pointerPreviousBlock);
         blockBuffer.putInt(attachPointer, RELATIVE_POINTER_NEXT, pointerNextBlock);
+
+        numberOfBlocksInBins++;
+        totalSizeOfBlocksInBins += attachSize;
     }
 
-    private void detachBlockFromList(int detachPointer) {
-        // find index of smallest possible bin
-        int detachSize = blockBuffer.getBlockSize(detachPointer);
-        int binIndex = BitUtil.numberOfBitsNeeded(detachSize + Integer.BYTES) - 1;
+    private static int binIndexFromSize(int size) {
+        return BitUtil.numberOfBitsNeeded(size) - 1;
+    }
+
+    private void detachBlockFromBins(int detachPointer) {
         int pointerPreviousBlock = blockBuffer.getInt(detachPointer, RELATIVE_POINTER_PREVIOUS);
         int pointerNextBlock = blockBuffer.getInt(detachPointer, RELATIVE_POINTER_NEXT);
+        int detachSize = blockBuffer.getBlockSize(detachPointer);
 
         // detach block from linked list
         if (pointerPreviousBlock == INT_VALUE_FOR_NULL) {
+            // find index of smallest possible bin
+            int binIndex = binIndexFromSize(detachSize);
             blockBuffer.putInt(binBlockPointer, binIndex*Integer.BYTES, pointerNextBlock);
         } else {
             blockBuffer.putInt(pointerPreviousBlock, RELATIVE_POINTER_NEXT, pointerNextBlock);
@@ -213,22 +256,25 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
         if (pointerNextBlock != INT_VALUE_FOR_NULL) {
             blockBuffer.putInt(pointerNextBlock, RELATIVE_POINTER_PREVIOUS, pointerPreviousBlock);
         }
+
+        numberOfBlocksInBins--;
+        totalSizeOfBlocksInBins -= detachSize;
     }
 
     private int findLeastSizedBlockBins(int requestedSize) {
         // find index of smallest possible bin
-        int binIndex = BitUtil.numberOfBitsNeeded(requestedSize) - 1;
+        int binIndex = binIndexFromSize(requestedSize);
 
         // find smallest block that is big enough in the bin
         int allocationPointer = INT_VALUE_FOR_NULL;
         while (binIndex < numberOfBins && allocationPointer == INT_VALUE_FOR_NULL) {
-            allocationPointer = findLeastSizedBlockList(blockBuffer.getInt(binBlockPointer, binIndex*Integer.BYTES), requestedSize);
+            allocationPointer = findLeastSizedBlockInBinList(blockBuffer.getInt(binBlockPointer, binIndex*Integer.BYTES), requestedSize);
             binIndex++;
         }
         return allocationPointer;
     }
 
-    private int findLeastSizedBlockList(int pointer, int requestedSize) {
+    private int findLeastSizedBlockInBinList(int pointer, int requestedSize) {
         boolean foundBlock = false;
         while (!foundBlock && pointer != INT_VALUE_FOR_NULL) {
 
@@ -266,7 +312,41 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
     }
 
     public boolean verfiyIntegrity() {
-        return blockBuffer.verfiyIntegrity();
+        boolean correct = blockBuffer.verfiyIntegrity();
+
+        if (correct) {
+            int vNum = 0;
+            int vSize = 0;
+            int bi = 0;
+            while (bi < numberOfBins) {
+                int p = blockBuffer.getInt(binBlockPointer, bi*Integer.BYTES);
+                while (p != INT_VALUE_FOR_NULL) {
+                    vNum++;
+                    vSize += blockBuffer.getBlockSize(p);
+                    p = blockBuffer.getInt(p, RELATIVE_POINTER_NEXT);
+
+                }
+                bi++;
+            }
+
+            int totalAmountOfBlockBufferOverhead = blockBuffer.getNumberOfBlocks() * blockBuffer.BLOCK_OVERHEAD_IN_BYTES;
+
+            if (numberOfBlocksInBins != vNum) {
+                logger.severe("Blocks have been lost from bins, expected " + numberOfBlocksInBins + " but found " + vNum + " number of blocks");
+                correct = false;
+            } else if (totalSizeOfBlocksInBins != vSize) {
+                logger.severe("Space as bin lost from bins, expected " + totalSizeOfBlocksInBins + " actual " + vSize);
+                correct = false;
+            } else if (numberOfBlocksInBins + numberOfAllocatedBlocks + 1 != blockBuffer.getNumberOfBlocks()) {
+                logger.severe("Total number of blocks are " + blockBuffer.getNumberOfBlocks() + ", these blocks should be in bins (" + numberOfBlocksInBins + ") or allocated blocks (" + numberOfAllocatedBlocks + ")");
+                correct = false;
+            } else if (totalSizeOfBlocksInBins + totalSizeOfAllocatedBlocks + sizeOfBinBlock + totalAmountOfBlockBufferOverhead != blockBuffer.getCapacity()) {
+                logger.severe("Total buffer capacity is " + blockBuffer.getCapacity() + ", this space should be in bins (" + totalSizeOfBlocksInBins + ") or in allocated blocks (" + totalSizeOfAllocatedBlocks + ") or the bin block (" + sizeOfBinBlock + " or in overhead (" + totalAmountOfBlockBufferOverhead + ")");
+                correct = false;
+            }
+        }
+
+        return correct;
     }
 
     private void resetBlock(int blockPointer) {
@@ -383,4 +463,7 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
         return blockBuffer.getBlockSize(blockPointer) - RELATIVE_POINTER_PAYLOAD;
     }
 
+    public int getTotalAvailableSpace() {
+        return totalSizeOfBlocksInBins;
+    }
 }

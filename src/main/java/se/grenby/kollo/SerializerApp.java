@@ -29,6 +29,7 @@ import se.grenby.kollo.sos.bbb.SosByteBlockBufferList;
 import se.grenby.kollo.sos.bbb.SosByteBlockBufferMap;
 import se.grenby.kollo.json.JsonDataList;
 import se.grenby.kollo.json.JsonDataMap;
+import se.grenby.kollo.sos.bytebuffer.SosByteBufferMap;
 
 /**
  * Created by peteri on 27/11/15.
@@ -84,7 +85,7 @@ public class SerializerApp {
 
         JsonDataMap jdme = sos.extractJSonDataMap();
 
-        memory.free(blockPointer);
+        memory.deallocate(blockPointer);
 
         System.out.println("by -- > " + jdme.getByte("by"));
     }

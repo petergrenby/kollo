@@ -1,6 +1,7 @@
 package se.grenby.kollo.bbbmanager;
 
 import org.junit.Test;
+import se.grenby.kollo.bbb.ByteBlockBuffer;
 import se.grenby.kollo.constant.PrimitiveConstants;
 
 import java.util.ArrayList;
@@ -20,9 +21,13 @@ public class ByteBlockBufferManagerTest {
     public void testAlloction() {
         ByteBlockBufferManager bbbm = new ByteBlockBufferManager(1024);
 
-        int p1 = bbbm.allocate(100);
+        int orginalSpace = bbbm.getTotalAvailableSpace();
+
+        final int allocationSize = 100;
+        int p1 = bbbm.allocate(allocationSize);
         assertNotEquals("No block allocation pointer was returned", PrimitiveConstants.INT_VALUE_FOR_NULL, p1);
-        assertEquals("Incorrect size of allocated block", 100, bbbm.getAllocatedSize(p1));
+        assertTrue("Incorrect size of allocated block", allocationSize <= bbbm.getAllocatedSize(p1));
+        assertEquals("Available space to manager is not correct after allocation", orginalSpace - allocationSize - ByteBlockBufferManager.MANAGED_BLOCK_OVERHEAD_IN_BYTES, bbbm.getTotalAvailableSpace());
         assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
     }
 
@@ -30,13 +35,19 @@ public class ByteBlockBufferManagerTest {
     public void testAlloctionAndDeallocation() {
         ByteBlockBufferManager bbbm = new ByteBlockBufferManager(1024);
 
-        int p1 = bbbm.allocate(100);
+        int orginalSpace = bbbm.getTotalAvailableSpace();
+
+        final int allocationSize = 100;
+        int p1 = bbbm.allocate(allocationSize);
         assertNotEquals("No block allocation pointer was returned", PrimitiveConstants.INT_VALUE_FOR_NULL, p1);
-        assertEquals("Incorrect size of allocated block", 100, bbbm.getAllocatedSize(p1));
+        assertTrue("Incorrect size of allocated block", allocationSize <= bbbm.getAllocatedSize(p1));
+        assertEquals("Available space to manager is not correct after allocation", orginalSpace - allocationSize - ByteBlockBufferManager.MANAGED_BLOCK_OVERHEAD_IN_BYTES, bbbm.getTotalAvailableSpace());
         assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
 
-        boolean res = bbbm.free(p1);
+
+        boolean res = bbbm.deallocate(p1);
         assertTrue("Deallocation was unsuccessful", res);
+        assertEquals("Available space to manager is not correct after allocation", orginalSpace, bbbm.getTotalAvailableSpace());
         assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
     }
 
@@ -65,41 +76,40 @@ public class ByteBlockBufferManagerTest {
 
         assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
 
+        final int allocationSize = 1024;
         for (int i=0; i<2000; i++) {
-            int p = bbbm.allocate(1024);
+            int p = bbbm.allocate(allocationSize);
             assertNotEquals("No block allocation pointer was returned", PrimitiveConstants.INT_VALUE_FOR_NULL, p);
+            int actualSize = bbbm.getAllocatedSize(p);
+            assertTrue("Incorrect size of allocated block", allocationSize <= actualSize);
+            assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
             pointers.add(p);
         }
 
-        assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
-
         int c = 0;
-        for (Iterator<Integer> it = pointers.iterator(); ; it.hasNext()) {
-            boolean r = bbbm.free(it.next());
+        for (Iterator<Integer> it = pointers.iterator(); it.hasNext() | (c < 1000); c++) {
+            int p = it.next();
+            boolean r = bbbm.deallocate(p);
             assertTrue("Deallocation was unsuccessful", r);
+            assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
             it.remove();
-            if (c++ > 1000)
-                break;
         }
 
-        assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
 
         for (int i=0; i<1000; i++) {
             int p = bbbm.allocate(1024);
             assertNotEquals("No block allocation pointer was returned", PrimitiveConstants.INT_VALUE_FOR_NULL, p);
+            int actualSize = bbbm.getAllocatedSize(p);
+            assertTrue("Incorrect size of allocated block", allocationSize <= actualSize);
+            assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
             pointers.add(p);
         }
 
-        assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
-
-        int i = 1;
         for (int p : pointers) {
-            boolean r = bbbm.free(p);
+            boolean r = bbbm.deallocate(p);
             assertTrue("Deallocation was unsuccessful", r);
-            i++;
+            assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
         }
-
-        assertTrue("Integrity of memory management and/or byte block buffer has been compromised", bbbm.verfiyIntegrity());
     }
 
 }
