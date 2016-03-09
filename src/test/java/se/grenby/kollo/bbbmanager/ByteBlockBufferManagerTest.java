@@ -87,7 +87,7 @@ public class ByteBlockBufferManagerTest {
         }
 
         int c = 0;
-        for (Iterator<Integer> it = pointers.iterator(); it.hasNext() | (c < 1000); c++) {
+        for (Iterator<Integer> it = pointers.iterator(); it.hasNext() & (c < 1000); c++) {
             int p = it.next();
             boolean r = bbbm.deallocate(p);
             assertTrue("Deallocation was unsuccessful", r);
