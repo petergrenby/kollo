@@ -76,7 +76,7 @@ public class SimpleObjectStructure {
         // Move position so we can set size later on
         int mapSizePosition = dst.position();
         dst.position(mapSizePosition + Short.BYTES);
-        for (Map.Entry<String, Object> o : map.entrySet()) {
+        for (Map.Entry<String, Object> o : map) {
             putStringInByteBuffer(dst, o.getKey());
             buildValue(dst, o.getValue());
         }

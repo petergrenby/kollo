@@ -25,54 +25,102 @@ package se.grenby.kollo.json;
 
 import java.util.*;
 
+
 /**
  * Created by peteri on 10/12/15.
  */
-public class JsonDataList extends ArrayList<Object> {
+public class JsonDataList implements Iterable<Object> {
+
+    private List<Object> list;
+
+    public JsonDataList() {
+        this.list = new ArrayList<>();
+    }
+
+    public JsonDataList(List<Object> list) {
+        this.list = list;
+    }
 
     public JsonDataList addByte(byte value) {
-        add(value);
+        list.add(value);
         return this;
     }
 
     public JsonDataList addShort(short value) {
-        add(value);
+        list.add(value);
         return this;
     }
 
     public JsonDataList addInt(int value) {
-        add(value);
+        list.add(value);
         return this;
     }
 
     public JsonDataList addLong(long value) {
-        add(value);
+        list.add(value);
         return this;
     }
 
     public JsonDataList addString(String value) {
-        add(value);
+        list.add(value);
         return this;
     }
 
     public JsonDataList addFloat(float value) {
-        add(value);
+        list.add(value);
         return this;
     }
 
     public JsonDataList addDouble(double value) {
-        add(value);
+        list.add(value);
         return this;
     }
 
     public JsonDataList addList(JsonDataList value) {
-        add(value);
+        list.add(value);
         return this;
     }
 
     public JsonDataList addMap(JsonDataMap value) {
-        add(value);
+        list.add(value);
         return this;
+    }
+
+    @Override
+    public Iterator<Object> iterator() {
+        return new JsonDataListIterator(list.iterator());
+    }
+
+    private class JsonDataListIterator implements Iterator<Object> {
+
+        private Iterator<Object> listIter;
+
+        public JsonDataListIterator(Iterator<Object> listIter) {
+            this.listIter = listIter;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return listIter.hasNext();
+        }
+
+        @Override
+        public Object next() {
+            Object obj = listIter.next();
+
+            if (obj instanceof Map) {
+                obj = new JsonDataMap((Map) obj);
+            } else if (obj instanceof List) {
+                obj = new JsonDataList((List) obj);
+            }
+
+            return obj;
+        }
+
+        @Override
+        public void remove() {
+            listIter.remove();
+        }
     }
 
 }

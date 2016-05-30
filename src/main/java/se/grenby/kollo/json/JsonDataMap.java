@@ -23,94 +23,168 @@
  */
 package se.grenby.kollo.json;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by peteri on 10/12/15.
  */
-public class JsonDataMap extends HashMap<String, Object> {
+public class JsonDataMap implements Iterable<Map.Entry<String, Object>> {
+
+    private Map<String, Object> map;
+
+    public JsonDataMap() {
+        map = new HashMap<>();
+    }
+
+    public JsonDataMap(Map<String, Object> map) {
+        this.map = map;
+    }
 
     public JsonDataMap putByte(String key, byte value) {
-        put(key, value);
+        map.put(key, value);
         return this;
     }
 
     public JsonDataMap putShort(String key, short value) {
-        put(key, value);
+        map.put(key, value);
         return this;
     }
 
     public JsonDataMap putInt(String key, int value) {
-        put(key, value);
+        map.put(key, value);
         return this;
     }
 
     public JsonDataMap putLong(String key, long value) {
-        put(key, value);
+        map.put(key, value);
         return this;
     }
 
     public JsonDataMap putString(String key, String value) {
-        put(key, value);
+        map.put(key, value);
         return this;
     }
 
     public JsonDataMap putFloat(String key, float value) {
-        put(key, value);
+        map.put(key, value);
         return this;
     }
 
     public JsonDataMap putDouble(String key, double value) {
-        put(key, value);
+        map.put(key, value);
         return this;
     }
 
     public JsonDataMap putMap(String key, JsonDataMap value) {
-        put(key, value);
+        map.put(key, value);
         return this;
     }
 
     public JsonDataMap putList(String key, JsonDataList value) {
-        put(key, value);
+        map.put(key, value);
         return this;
     }
 
     public byte getByte(String key) {
-        return (byte) get(key);
+        return (byte) map.get(key);
     }
 
 
     public short getShort(String key) {
-        return (short) get(key);
+        return (short) map.get(key);
     }
 
 
     public int getInteger(String key) {
-        return (Integer) get(key);
+        return (Integer) map.get(key);
     }
 
 
     public long getLong(String key) {
-        return (byte) get(key);
+        return (byte) map.get(key);
     }
 
 
     public float getFloat(String key) {
-        return (float) get(key);
+        return (float) map.get(key);
     }
 
     public double getDouble(String key) {
-        return (double) get(key);
+        return (double) map.get(key);
     }
 
     public JsonDataMap getMap(String key) {
-        return (JsonDataMap) get(key);
+        return (JsonDataMap) map.get(key);
     }
 
     public JsonDataList getList(String key) {
-        return (JsonDataList) get(key);
+        return (JsonDataList) map.get(key);
     }
+
+    @Override
+    public Iterator<Map.Entry<String, Object>> iterator() {
+        return new JsonDataMapIterator(map.entrySet().iterator());
+    }
+
+    private class JsonDataMapEntry implements Map.Entry<String, Object>{
+
+        private String key;
+        private Object value;
+
+        public JsonDataMapEntry(String key, Object value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        @Override
+        public String getKey() {
+            return key;
+        }
+
+        @Override
+        public Object getValue() {
+            return value;
+        }
+
+        @Override
+        public Object setValue(Object value) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private class JsonDataMapIterator implements Iterator<Map.Entry<String, Object>> {
+
+        private Iterator<Map.Entry<String, Object>> mapIter;
+
+        public JsonDataMapIterator(Iterator<Map.Entry<String, Object>> mapIter) {
+            this.mapIter = mapIter;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return mapIter.hasNext();
+        }
+
+        @Override
+        public Map.Entry<String, Object> next() {
+            Map.Entry<String, Object> entry = mapIter.next();
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if (value instanceof Map) {
+                value = new JsonDataMap((Map) value);
+            } else if (value instanceof List) {
+                value = new JsonDataList((List) value);
+            }
+
+            return new JsonDataMapEntry(key, value);
+        }
+
+        @Override
+        public void remove() {
+            mapIter.remove();
+        }
+    }
+
 
 }
