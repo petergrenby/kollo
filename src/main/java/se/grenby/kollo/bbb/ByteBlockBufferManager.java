@@ -21,9 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.bbbmanager;
+package se.grenby.kollo.bbb;
 
-import se.grenby.kollo.bbb.ByteBlockBuffer;
+import se.grenby.kollo.bbb.buffer.ByteBlockBuffer;
 import se.grenby.kollo.util.BitUtil;
 
 import java.nio.ByteBuffer;
@@ -459,7 +459,7 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
     }
 
     @Override
-    public int getAllocatedSize(int blockPointer) {
+    public int allocatedSize(int blockPointer) {
         return blockBuffer.getBlockSize(blockPointer) - RELATIVE_POINTER_PAYLOAD;
     }
 

@@ -21,25 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.bbbmanager;
+package se.grenby.kollo.sos.constant;
 
 /**
- * Created by peteri on 15/02/16.
+ * Created by peteri on 06/02/16.
  */
-public interface ByteBlockBufferReader {
-    byte[] getBytes(int blockPointer, int position, int length);
+public class SosConstants {
+    public static final byte MAP_VALUE = 1;
+    public static final byte LIST_VALUE = 2;
+    public static final byte BYTE_VALUE = 3;
+    public static final byte SHORT_VALUE = 4;
+    public static final byte INTEGER_VALUE = 5;
+    public static final byte LONG_VALUE = 6;
+    public static final byte STRING_VALUE = 7;
+    public static final byte FLOAT_VALUE = 8;
+    public static final byte DOUBLE_VALUE = 9;
 
-    byte getByte(int blockPointer, int position);
-
-    short getShort(int blockPointer, int position);
-
-    int getInt(int blockPointer, int position);
-
-    long getLong(int blockPointer, int position);
-
-    float getFloat(int blockPointer, int position);
-
-    double getDouble(int blockPointer, int position);
-
-    int getAllocatedSize(int blockPointer);
 }

@@ -1,13 +1,13 @@
-package se.grenby.kollo.sos.bbb;
+package se.grenby.kollo.sos.object;
 
 /**
  * Created by peteri on 5/30/16.
  */
-class SosByteBlockBufferPosition {
+class SosPosition {
 
     private int position;
 
-    public SosByteBlockBufferPosition(int position) {
+    public SosPosition(int position) {
         this.position = position;
     }
 
@@ -45,7 +45,7 @@ class SosByteBlockBufferPosition {
 
     @Override
     public String toString() {
-        return "SosByteBlockBufferPosition{" +
+        return "SosPosition{" +
                 "position=" + position +
                 '}';
     }

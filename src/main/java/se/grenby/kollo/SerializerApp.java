@@ -23,13 +23,12 @@
  */
 package se.grenby.kollo;
 
-import se.grenby.kollo.bbbmanager.ByteBlockBufferManager;
+import se.grenby.kollo.bbb.ByteBlockBufferManager;
 import se.grenby.kollo.sos.*;
-import se.grenby.kollo.sos.bbb.SosByteBlockBufferList;
-import se.grenby.kollo.sos.bbb.SosByteBlockBufferMap;
+import se.grenby.kollo.sos.object.SosList;
+import se.grenby.kollo.sos.object.SosMap;
 import se.grenby.kollo.json.JsonDataList;
 import se.grenby.kollo.json.JsonDataMap;
-import se.grenby.kollo.sos.bytebuffer.SosByteBufferMap;
 
 /**
  * Created by peteri on 27/11/15.
@@ -53,8 +52,8 @@ public class SerializerApp {
         jdm.putMap("map", jdm2);
 
         ByteBlockBufferManager memory = new ByteBlockBufferManager(1024*10);
-        int blockPointer = SimpleObjectStructure.buildSosByteBlockBuffer(memory, jdm);
-        SosByteBlockBufferMap sos = new SosByteBlockBufferMap(memory, blockPointer);
+        int blockPointer = SosBuilder.buildSosByteBlockBuffer(memory, jdm);
+        SosMap sos = new SosMap(memory, blockPointer);
 
         System.out.println(sos.toString());
         System.out.println();
@@ -66,11 +65,11 @@ public class SerializerApp {
         System.out.println("Double -->" + sos.getDoubleValue("do") + "<--");
         System.out.println("String -->" + sos.getStringValue("st") + "<--");
 
-        SosByteBlockBufferMap bpo2 = sos.getMapValue("map");
+        SosMap bpo2 = sos.getMapValue("map");
         System.out.println("In map -->" + bpo2.getStringValue("st2") + "<--");
         System.out.println("In map -->" + bpo2.getStringValue("st3") + "<--");
 
-        SosByteBlockBufferList bpl = sos.getListValue("list");
+        SosList bpl = sos.getListValue("list");
         for (Object o : bpl) {
             System.out.println("In list -->" + o.toString() + "<--");
         }

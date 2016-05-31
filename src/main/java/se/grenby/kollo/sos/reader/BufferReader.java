@@ -21,17 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.bbbmanager;
-
-import java.nio.ByteBuffer;
+package se.grenby.kollo.sos.reader;
 
 /**
- * Created by peteri on 21/02/16.
+ * Created by peteri on 5/31/16.
  */
-public interface ByteBlockBufferAllocator {
-    int allocate(int sizeOfPayload);
+public interface BufferReader {
 
-    int allocateAndClear(int sizeOfPayload);
+    byte[] getBytes(int position, int length);
 
-    int allocateAndClone(ByteBuffer buffer);
+    byte getByte(int position);
+
+    short getShort(int position);
+
+    int getInt(int position);
+
+    long getLong(int position);
+
+    float getFloat(int position);
+
+    double getDouble(int position);
+
+    int getAllocatedSize();
+
 }

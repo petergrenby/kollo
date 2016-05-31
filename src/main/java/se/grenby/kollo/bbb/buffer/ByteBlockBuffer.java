@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.bbb;
+package se.grenby.kollo.bbb.buffer;
 
 import java.nio.ByteBuffer;
 

@@ -23,8 +23,7 @@
  */
 package se.grenby.kollo.sos;
 
-import se.grenby.kollo.bbbmanager.ByteBlockBufferAllocator;
-import se.grenby.kollo.sos.bytebuffer.SosByteBufferMap;
+import se.grenby.kollo.bbb.ByteBlockBufferAllocator;
 import se.grenby.kollo.json.JsonDataList;
 import se.grenby.kollo.json.JsonDataMap;
 
@@ -32,24 +31,15 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static se.grenby.kollo.sos.SosConstants.*;
+import static se.grenby.kollo.sos.constant.SosConstants.*;
 
 /**
  * Created by peteri on 30/01/16.
  */
-public class SimpleObjectStructure {
+public class SosBuilder {
 
-    private static final int MAX_BYTES_CTOF_OBJECT = Short.MAX_VALUE;
+    private static final int MAX_BYTES_SOS_OBJECT = Short.MAX_VALUE;
     private static ThreadLocal<ByteBuffer> buffers = new ThreadLocal<>();
-
-    public static SosByteBufferMap buildSosByteBuffer(JsonDataMap map) {
-        ByteBuffer buffer = getByteBuffer();
-
-        buildSosMap(buffer, map);
-        buffer.flip();
-
-        return new SosByteBufferMap(buffer);
-    }
 
     public static int buildSosByteBlockBuffer(ByteBlockBufferAllocator allocator, JsonDataMap map) {
         ByteBuffer buffer = getByteBuffer();
@@ -64,7 +54,7 @@ public class SimpleObjectStructure {
     private static ByteBuffer getByteBuffer() {
         ByteBuffer buffer = buffers.get();
         if (buffer == null) {
-            buffer = ByteBuffer.allocate(MAX_BYTES_CTOF_OBJECT);
+            buffer = ByteBuffer.allocate(MAX_BYTES_SOS_OBJECT);
             buffers.set(buffer);
         }
         buffer.clear();

@@ -21,34 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.sos.bbb;
+package se.grenby.kollo.sos.object;
 
-import se.grenby.kollo.bbbmanager.ByteBlockBufferReader;
+import se.grenby.kollo.sos.reader.BufferReader;
 
 import java.nio.charset.StandardCharsets;
 
-import static se.grenby.kollo.sos.SosConstants.*;
+import static se.grenby.kollo.sos.constant.SosConstants.*;
 import static se.grenby.kollo.util.BitUtil.HEXES;
 
 /**
  * Created by peteri on 30/01/16.
  */
-public abstract class SosByteBlockBufferObject {
-    protected final ByteBlockBufferReader blockReader;
-    protected final int blockPointer;
+public abstract class SosObject {
+    protected final BufferReader bufferReader;
     protected final int startBlockPosition;
 
-    SosByteBlockBufferObject(ByteBlockBufferReader block, int blockPointer, int position) {
-        this.blockReader = block;
-        this.blockPointer = blockPointer;
+    SosObject(BufferReader bufferReader, int position) {
+        this.bufferReader = bufferReader;
         this.startBlockPosition = position;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < blockReader.getAllocatedSize(blockPointer); i++) {
-            byte b = blockReader.getByte(blockPointer, i);
+        for (int i = 0; i < bufferReader.getAllocatedSize(); i++) {
+            byte b = bufferReader.getByte(i);
             sb.append(HEXES[(b & 0xff) >>> 4]);
             sb.append(HEXES[(b & 0xf)]);
             sb.append(" ");
@@ -56,27 +54,27 @@ public abstract class SosByteBlockBufferObject {
         return sb.toString();
     }
 
-    protected <T> T getValue(Class<T> klass, int valueType, SosByteBlockBufferPosition position) {
+    protected <T> T getValue(Class<T> klass, int valueType, SosPosition position) {
         T value;
         if (valueType == BYTE_VALUE) {
-            value = klass.cast(blockReader.getByte(blockPointer, position.position()));
+            value = klass.cast(bufferReader.getByte(position.position()));
             position.incByte();
         } else if (valueType == SHORT_VALUE) {
-            value = klass.cast(blockReader.getShort(blockPointer, position.position()));
+            value = klass.cast(bufferReader.getShort(position.position()));
             position.incShort();
         } else if (valueType == INTEGER_VALUE) {
-            value = klass.cast(blockReader.getInt(blockPointer, position.position()));
+            value = klass.cast(bufferReader.getInt(position.position()));
             position.incInteger();
         } else if (valueType == LONG_VALUE) {
-            value = klass.cast(blockReader.getLong(blockPointer, position.position()));
+            value = klass.cast(bufferReader.getLong(position.position()));
             position.incLong();
         } else if (valueType == STRING_VALUE) {
             value = klass.cast(getStringFromByteBuffer(position));
         } else if (valueType == FLOAT_VALUE) {
-            value = klass.cast(blockReader.getFloat(blockPointer, position.position()));
+            value = klass.cast(bufferReader.getFloat(position.position()));
             position.incFloat();
         } else if (valueType == DOUBLE_VALUE) {
-            value = klass.cast(blockReader.getDouble(blockPointer, position.position()));
+            value = klass.cast(bufferReader.getDouble(position.position()));
             position.incDouble();
         } else {
             throw new RuntimeException("Value type " + valueType + " is unknown.");
@@ -84,8 +82,8 @@ public abstract class SosByteBlockBufferObject {
         return value;
     }
 
-    protected void skipValueTypeAndValueInByteBuffer(SosByteBlockBufferPosition position) {
-        byte valueType = blockReader.getByte(blockPointer, position.position());
+    protected void skipValueTypeAndValueInByteBuffer(SosPosition position) {
+        byte valueType = bufferReader.getByte(position.position());
         position.incByte();
         switch (valueType) {
             case BYTE_VALUE:
@@ -118,22 +116,22 @@ public abstract class SosByteBlockBufferObject {
         }
     }
 
-    private void skipStringValueInByteBuffer(SosByteBlockBufferPosition position) {
-        int stringLength = blockReader.getByte(blockPointer, position.position());
+    private void skipStringValueInByteBuffer(SosPosition position) {
+        int stringLength = bufferReader.getByte(position.position());
         position.incByte();
         position.addLength(stringLength);
     }
 
-    protected void skipMapOrListValueInByteBuffer(SosByteBlockBufferPosition position) {
-        int mlLength = blockReader.getShort(blockPointer, position.position());
+    protected void skipMapOrListValueInByteBuffer(SosPosition position) {
+        int mlLength = bufferReader.getShort(position.position());
         position.incShort();
         position.addLength(mlLength);
     }
 
-    protected String getStringFromByteBuffer(SosByteBlockBufferPosition position) {
-        int length = blockReader.getByte(blockPointer, position.position());
+    protected String getStringFromByteBuffer(SosPosition position) {
+        int length = bufferReader.getByte(position.position());
         position.incByte();
-        byte[] bs = blockReader.getBytes(blockPointer, position.position(), length);
+        byte[] bs = bufferReader.getBytes(position.position(), length);
         position.addLength(length);
         return new String(bs, StandardCharsets.UTF_8);
     }

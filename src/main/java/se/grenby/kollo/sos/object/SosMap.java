@@ -21,34 +21,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.sos.bbb;
+package se.grenby.kollo.sos.object;
 
-import se.grenby.kollo.bbbmanager.ByteBlockBufferReader;
+import se.grenby.kollo.bbb.ByteBlockBufferReader;
+import se.grenby.kollo.sos.reader.ByteBlockBufferWrapperReader;
+import se.grenby.kollo.sos.reader.BufferReader;
 import se.grenby.kollo.json.JsonDataMap;
+import se.grenby.kollo.sos.reader.ByteBufferWrapperReader;
 
-import static se.grenby.kollo.sos.SosConstants.*;
+import java.nio.ByteBuffer;
+
+import static se.grenby.kollo.sos.constant.SosConstants.*;
 
 /**
  * Created by peteri on 07/02/16.
  */
-public class SosByteBlockBufferMap extends SosByteBlockBufferObject {
+public class SosMap extends SosObject {
 
     private final int mapStartPosition;
     private final int mapTotalLength;
 
-    public SosByteBlockBufferMap(ByteBlockBufferReader reader, int blockPointer) {
-        this(reader, blockPointer, 0);
+    public SosMap(ByteBuffer byteBuffer) {
+        this(new ByteBufferWrapperReader(byteBuffer));
     }
 
-    public SosByteBlockBufferMap(ByteBlockBufferReader reader, int blockPointer, int position) {
-        super(reader, blockPointer, position);
+    public SosMap(ByteBlockBufferReader blockReader, int blockPointer) {
+        this(new ByteBlockBufferWrapperReader(blockReader, blockPointer));
+    }
+
+    public SosMap(BufferReader bufferReader) {
+        this(bufferReader, 0);
+    }
+
+    public SosMap(BufferReader bufferReader, int position) {
+        super(bufferReader, position);
 
         int blockPosition = startBlockPosition;
 
-        byte valueType = blockReader.getByte(blockPointer, blockPosition);
+        byte valueType = bufferReader.getByte(blockPosition);
         blockPosition += Byte.BYTES;
         if (valueType == MAP_VALUE) {
-            mapTotalLength = blockReader.getShort(blockPointer, blockPosition);
+            mapTotalLength = bufferReader.getShort(blockPosition);
             blockPosition += Short.BYTES;
             mapStartPosition = blockPosition;
         } else {
@@ -56,12 +69,12 @@ public class SosByteBlockBufferMap extends SosByteBlockBufferObject {
         }
     }
 
-    public SosByteBlockBufferMap getMapValue(String key) {
-        return getValue(key, SosByteBlockBufferMap.class);
+    public SosMap getMapValue(String key) {
+        return getValue(key, SosMap.class);
     }
 
-    public SosByteBlockBufferList getListValue(String key) {
-        return getValue(key, SosByteBlockBufferList.class);
+    public SosList getListValue(String key) {
+        return getValue(key, SosList.class);
     }
 
     public byte getByteValue(String key) {
@@ -94,18 +107,18 @@ public class SosByteBlockBufferMap extends SosByteBlockBufferObject {
 
     public <T> T getValue(String key, Class<T> klass) {
         T value = null;
-        SosByteBlockBufferPosition position = new SosByteBlockBufferPosition(mapStartPosition);
+        SosPosition position = new SosPosition(mapStartPosition);
 
         while (position.position() < mapStartPosition + mapTotalLength) {
             String mk = getStringFromByteBuffer(position);
             if (key.equals(mk)) {
                 int valuePosition = position.position();
-                int valueType = blockReader.getByte(blockPointer, position.position());
+                int valueType = bufferReader.getByte(position.position());
                 position.incByte();
                 if (valueType == MAP_VALUE) {
-                    value = klass.cast(new SosByteBlockBufferMap(blockReader, blockPointer, valuePosition));
+                    value = klass.cast(new SosMap(bufferReader, valuePosition));
                 } else if (valueType == LIST_VALUE) {
-                    value = klass.cast(new SosByteBlockBufferList(blockReader, blockPointer, valuePosition));
+                    value = klass.cast(new SosList(bufferReader, valuePosition));
                 } else {
                     value = getValue(klass, valueType, position);
                 }
@@ -121,19 +134,19 @@ public class SosByteBlockBufferMap extends SosByteBlockBufferObject {
     public JsonDataMap extractJSonDataMap() {
         JsonDataMap map = new JsonDataMap();
 
-        SosByteBlockBufferPosition position = new SosByteBlockBufferPosition(mapStartPosition);
+        SosPosition position = new SosPosition(mapStartPosition);
 
         while (position.position() < mapStartPosition + mapTotalLength) {
             String mk = getStringFromByteBuffer(position);
             int valuePosition = position.position();
-            int valueType = blockReader.getByte(blockPointer, position.position());
+            int valueType = bufferReader.getByte(position.position());
             position.incByte();
             if (valueType == MAP_VALUE) {
-                SosByteBlockBufferMap cdm = new SosByteBlockBufferMap(blockReader, blockPointer, valuePosition);
+                SosMap cdm = new SosMap(bufferReader, valuePosition);
                 map.putMap(mk, cdm.extractJSonDataMap());
                 skipMapOrListValueInByteBuffer(position);
             } else if (valueType == LIST_VALUE) {
-                SosByteBlockBufferList cdl = new SosByteBlockBufferList(blockReader, blockPointer, valuePosition);
+                SosList cdl = new SosList(bufferReader, valuePosition);
                 map.putList(mk, cdl.extractJSonDataList());
                 skipMapOrListValueInByteBuffer(position);
             } else if (valueType == BYTE_VALUE) {
