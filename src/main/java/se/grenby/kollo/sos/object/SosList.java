@@ -26,7 +26,9 @@ package se.grenby.kollo.sos.object;
 import se.grenby.kollo.sos.reader.BufferReader;
 import se.grenby.kollo.json.JsonDataList;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import static se.grenby.kollo.sos.constant.SosConstants.*;
 import static se.grenby.kollo.sos.constant.SosConstants.DOUBLE_VALUE;
@@ -56,76 +58,66 @@ public class SosList extends SosObject implements Iterable<Object> {
         }
     }
 
+    private Object getObject(SosPosition position) {
+        Object obj;
 
-    public <T> T getNextValue(Class<T> klass, SosPosition position) {
-        T value = null;
-
-        if (position.position() < listStartPosition + listTotalLength) {
-            int valuePosition = position.position();
-            int valueType = bufferReader.getByte(position.position());
-            position.incByte();
-            if (valueType == MAP_VALUE) {
-                value = klass.cast(new SosMap(bufferReader, valuePosition));
-            } else if (valueType == LIST_VALUE) {
-                value = klass.cast(new SosList(bufferReader, valuePosition));
-            } else {
-                value = getValue(klass, valueType, position);
-            }
+        int valuePosition = position.position();
+        int valueType = bufferReader.getByte(position.position());
+        position.incByte();
+        if (valueType == MAP_VALUE) {
+            obj = new SosMap(bufferReader, valuePosition);
+            skipMapOrListValueInByteBuffer(position);
+        } else if (valueType == LIST_VALUE) {
+            obj = new SosList(bufferReader, valuePosition);
+            skipMapOrListValueInByteBuffer(position);
+        } else if (valueType == BYTE_VALUE) {
+            obj = getValue(Byte.class, valueType, position);
+        } else if (valueType == SHORT_VALUE) {
+            obj = getValue(Short.class, valueType, position);
+        } else if (valueType == INTEGER_VALUE) {
+            obj = getValue(Integer.class, valueType, position);
+        } else if (valueType == LONG_VALUE) {
+            obj = getValue(Long.class, valueType, position);
+        } else if (valueType == STRING_VALUE) {
+            obj = getValue(String.class, valueType, position);
+        } else if (valueType == FLOAT_VALUE) {
+            obj = getValue(Float.class, valueType, position);
+        } else if (valueType == DOUBLE_VALUE) {
+            obj = getValue(Double.class, valueType, position);
         } else {
-            throw new RuntimeException("End of list has been reached");
+            throw new IllegalStateException(valueType + " is not a correct value type.");
         }
 
-        return value;
+        return obj;
     }
 
     public JsonDataList extractJSonDataList() {
-        JsonDataList list = new JsonDataList();
         SosPosition position = new SosPosition(listStartPosition);
+        List<Object> list = new ArrayList<>();
 
         while (position.position() < listStartPosition + listTotalLength) {
-            int valuePosition = position.position();
-            int valueType = bufferReader.getByte(position.position());
-            position.incByte();
-            if (valueType == MAP_VALUE) {
-                SosMap cdm = new SosMap(bufferReader, valuePosition);
-                list.addMap(cdm.extractJSonDataMap());
-                skipMapOrListValueInByteBuffer(position);
-            } else if (valueType == LIST_VALUE) {
-                SosList cdl = new SosList(bufferReader, valuePosition);
-                list.addList(cdl.extractJSonDataList());
-                skipMapOrListValueInByteBuffer(position);
-            } else if (valueType == BYTE_VALUE) {
-                list.addByte(getValue(Byte.class, valueType, position));
-            } else if (valueType == SHORT_VALUE) {
-                list.addShort(getValue(Short.class, valueType, position));
-            } else if (valueType == INTEGER_VALUE) {
-                list.addInt(getValue(Integer.class, valueType, position));
-            } else if (valueType == LONG_VALUE) {
-                list.addLong(getValue(Long.class, valueType, position));
-            } else if (valueType == STRING_VALUE) {
-                list.addString(getValue(String.class, valueType, position));
-            } else if (valueType == FLOAT_VALUE) {
-                list.addFloat(getValue(Float.class, valueType, position));
-            } else if (valueType == DOUBLE_VALUE) {
-                list.addDouble(getValue(Double.class, valueType, position));
-            } else {
-                throw new IllegalStateException(valueType + " is not a correct value type.");
+            Object obj = getObject(position);
+            if (obj instanceof SosList) {
+                obj = ((SosList) obj).extractJSonDataList();
+            } else if (obj instanceof SosMap) {
+                obj = ((SosMap) obj).extractJSonDataMap();
             }
+            list.add(obj);
         }
 
-        return list;
+        return new JsonDataList(list);
     }
 
     @Override
     public Iterator<Object> iterator() {
-        return new SosBBBListIterator();
+        return new SosListIterator();
     }
 
-    private class SosBBBListIterator implements Iterator<Object> {
+    private class SosListIterator implements Iterator<Object> {
 
         private final SosPosition position;
 
-        public SosBBBListIterator() {
+        public SosListIterator() {
             position = new SosPosition(listStartPosition);
         }
 
@@ -139,38 +131,7 @@ public class SosList extends SosObject implements Iterable<Object> {
 
         @Override
         public Object next() {
-            Object obj;
-
-            int valuePosition = position.position();
-            int valueType = bufferReader.getByte(position.position());
-            position.incByte();
-            if (valueType == MAP_VALUE) {
-                SosMap cdm = new SosMap(bufferReader, valuePosition);
-                obj = cdm.extractJSonDataMap();
-                skipMapOrListValueInByteBuffer(position);
-            } else if (valueType == LIST_VALUE) {
-                SosList cdl = new SosList(bufferReader, valuePosition);
-                obj = cdl.extractJSonDataList();
-                skipMapOrListValueInByteBuffer(position);
-            } else if (valueType == BYTE_VALUE) {
-                obj = getValue(Byte.class, valueType, position);
-            } else if (valueType == SHORT_VALUE) {
-                obj = getValue(Short.class, valueType, position);
-            } else if (valueType == INTEGER_VALUE) {
-                obj = getValue(Integer.class, valueType, position);
-            } else if (valueType == LONG_VALUE) {
-                obj = getValue(Long.class, valueType, position);
-            } else if (valueType == STRING_VALUE) {
-                obj = getValue(String.class, valueType, position);
-            } else if (valueType == FLOAT_VALUE) {
-                obj = getValue(Float.class, valueType, position);
-            } else if (valueType == DOUBLE_VALUE) {
-                obj = getValue(Double.class, valueType, position);
-            } else {
-                throw new IllegalStateException(valueType + " is not a correct value type.");
-            }
-
-            return obj;
+            return getObject(position);
         }
 
         @Override
