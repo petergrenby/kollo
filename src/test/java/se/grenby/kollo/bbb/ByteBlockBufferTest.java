@@ -3,10 +3,10 @@ package se.grenby.kollo.bbb;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import se.grenby.kollo.bbb.buffer.ByteBlockBuffer;
+import se.grenby.kollo.bbb.blockbuffer.ByteBlockBuffer;
 
 import static org.junit.Assert.*;
-import static se.grenby.kollo.bbb.buffer.ByteBlockBuffer.BLOCK_OVERHEAD_IN_BYTES;
+import static se.grenby.kollo.bbb.blockbuffer.ByteBlockBuffer.BLOCK_OVERHEAD_IN_BYTES;
 
 /**
  * Created by peteri on 24/11/15.

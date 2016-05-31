@@ -23,7 +23,7 @@
  */
 package se.grenby.kollo.bbb;
 
-import se.grenby.kollo.bbb.buffer.ByteBlockBuffer;
+import se.grenby.kollo.bbb.blockbuffer.ByteBlockBuffer;
 import se.grenby.kollo.util.BitUtil;
 
 import java.nio.ByteBuffer;
@@ -341,7 +341,7 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
                 logger.severe("Total number of blocks are " + blockBuffer.getNumberOfBlocks() + ", these blocks should be in bins (" + numberOfBlocksInBins + ") or allocated blocks (" + numberOfAllocatedBlocks + ")");
                 correct = false;
             } else if (totalSizeOfBlocksInBins + totalSizeOfAllocatedBlocks + sizeOfBinBlock + totalAmountOfBlockBufferOverhead != blockBuffer.getCapacity()) {
-                logger.severe("Total buffer capacity is " + blockBuffer.getCapacity() + ", this space should be in bins (" + totalSizeOfBlocksInBins + ") or in allocated blocks (" + totalSizeOfAllocatedBlocks + ") or the bin block (" + sizeOfBinBlock + " or in overhead (" + totalAmountOfBlockBufferOverhead + ")");
+                logger.severe("Total blockbuffer capacity is " + blockBuffer.getCapacity() + ", this space should be in bins (" + totalSizeOfBlocksInBins + ") or in allocated blocks (" + totalSizeOfAllocatedBlocks + ") or the bin block (" + sizeOfBinBlock + " or in overhead (" + totalAmountOfBlockBufferOverhead + ")");
                 correct = false;
             }
         }
