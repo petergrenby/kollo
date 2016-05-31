@@ -43,6 +43,8 @@ public class SosByteBlockBufferMap extends SosByteBlockBufferObject {
     public SosByteBlockBufferMap(ByteBlockBufferReader reader, int blockPointer, int position) {
         super(reader, blockPointer, position);
 
+        int blockPosition = startBlockPosition;
+
         byte valueType = blockReader.getByte(blockPointer, blockPosition);
         blockPosition += Byte.BYTES;
         if (valueType == MAP_VALUE) {
@@ -92,24 +94,24 @@ public class SosByteBlockBufferMap extends SosByteBlockBufferObject {
 
     public <T> T getValue(String key, Class<T> klass) {
         T value = null;
-        blockPosition = mapStartPosition;
+        SosByteBlockBufferPosition position = new SosByteBlockBufferPosition(mapStartPosition);
 
-        while (blockPosition < mapStartPosition + mapTotalLength) {
-            String mk = getStringFromByteBuffer();
+        while (position.position() < mapStartPosition + mapTotalLength) {
+            String mk = getStringFromByteBuffer(position);
             if (key.equals(mk)) {
-                int valuePosition = blockPosition;
-                int valueType = blockReader.getByte(blockPointer, blockPosition);
-                blockPosition += Byte.BYTES;
+                int valuePosition = position.position();
+                int valueType = blockReader.getByte(blockPointer, position.position());
+                position.incByte();
                 if (valueType == MAP_VALUE) {
                     value = klass.cast(new SosByteBlockBufferMap(blockReader, blockPointer, valuePosition));
                 } else if (valueType == LIST_VALUE) {
                     value = klass.cast(new SosByteBlockBufferList(blockReader, blockPointer, valuePosition));
                 } else {
-                    value = getValue(klass, valueType);
+                    value = getValue(klass, valueType, position);
                 }
                 break;
             } else {
-                skipValueTypeAndValueInByteBuffer();
+                skipValueTypeAndValueInByteBuffer(position);
             }
         }
 
@@ -119,35 +121,35 @@ public class SosByteBlockBufferMap extends SosByteBlockBufferObject {
     public JsonDataMap extractJSonDataMap() {
         JsonDataMap map = new JsonDataMap();
 
-        blockPosition = mapStartPosition;
+        SosByteBlockBufferPosition position = new SosByteBlockBufferPosition(mapStartPosition);
 
-        while (blockPosition < mapStartPosition + mapTotalLength) {
-            String mk = getStringFromByteBuffer();
-            int valuePosition = blockPosition;
-            int valueType = blockReader.getByte(blockPointer, blockPosition);
-            blockPosition += Byte.BYTES;
+        while (position.position() < mapStartPosition + mapTotalLength) {
+            String mk = getStringFromByteBuffer(position);
+            int valuePosition = position.position();
+            int valueType = blockReader.getByte(blockPointer, position.position());
+            position.incByte();
             if (valueType == MAP_VALUE) {
                 SosByteBlockBufferMap cdm = new SosByteBlockBufferMap(blockReader, blockPointer, valuePosition);
                 map.putMap(mk, cdm.extractJSonDataMap());
-                skipMapOrListValueInByteBuffer();
+                skipMapOrListValueInByteBuffer(position);
             } else if (valueType == LIST_VALUE) {
                 SosByteBlockBufferList cdl = new SosByteBlockBufferList(blockReader, blockPointer, valuePosition);
                 map.putList(mk, cdl.extractJSonDataList());
-                skipMapOrListValueInByteBuffer();
+                skipMapOrListValueInByteBuffer(position);
             } else if (valueType == BYTE_VALUE) {
-                map.putByte(mk, getValue(Byte.class, valueType));
+                map.putByte(mk, getValue(Byte.class, valueType, position));
             } else if (valueType == SHORT_VALUE) {
-                map.putShort(mk, getValue(Short.class, valueType));
+                map.putShort(mk, getValue(Short.class, valueType, position));
             } else if (valueType == INTEGER_VALUE) {
-                map.putInt(mk, getValue(Integer.class, valueType));
+                map.putInt(mk, getValue(Integer.class, valueType, position));
             } else if (valueType == LONG_VALUE) {
-                map.putLong(mk, getValue(Long.class, valueType));
+                map.putLong(mk, getValue(Long.class, valueType, position));
             } else if (valueType == STRING_VALUE) {
-                map.putString(mk, getValue(String.class, valueType));
+                map.putString(mk, getValue(String.class, valueType, position));
             } else if (valueType == FLOAT_VALUE) {
-                map.putFloat(mk, getValue(Float.class, valueType));
+                map.putFloat(mk, getValue(Float.class, valueType, position));
             } else if (valueType == DOUBLE_VALUE) {
-                map.putDouble(mk, getValue(Double.class, valueType));
+                map.putDouble(mk, getValue(Double.class, valueType, position));
             } else {
                 throw new IllegalStateException(valueType + " is not a correct value type.");
             }

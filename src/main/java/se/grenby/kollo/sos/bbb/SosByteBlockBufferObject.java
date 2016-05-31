@@ -37,13 +37,11 @@ public abstract class SosByteBlockBufferObject {
     protected final ByteBlockBufferReader blockReader;
     protected final int blockPointer;
     protected final int startBlockPosition;
-    protected int blockPosition;
 
     SosByteBlockBufferObject(ByteBlockBufferReader block, int blockPointer, int position) {
         this.blockReader = block;
         this.blockPointer = blockPointer;
         this.startBlockPosition = position;
-        this.blockPosition = position;
     }
 
     @Override
@@ -58,83 +56,85 @@ public abstract class SosByteBlockBufferObject {
         return sb.toString();
     }
 
-    protected <T> T getValue(Class<T> klass, int valueType) {
+    protected <T> T getValue(Class<T> klass, int valueType, SosByteBlockBufferPosition position) {
         T value;
         if (valueType == BYTE_VALUE) {
-            value = klass.cast(blockReader.getByte(blockPointer, blockPosition));
-            blockPosition += Byte.BYTES;
+            value = klass.cast(blockReader.getByte(blockPointer, position.position()));
+            position.incByte();
         } else if (valueType == SHORT_VALUE) {
-            value = klass.cast(blockReader.getShort(blockPointer, blockPosition));
-            blockPosition += Short.BYTES;
+            value = klass.cast(blockReader.getShort(blockPointer, position.position()));
+            position.incShort();
         } else if (valueType == INTEGER_VALUE) {
-            value = klass.cast(blockReader.getInt(blockPointer, blockPosition));
-            blockPosition += Integer.BYTES;
+            value = klass.cast(blockReader.getInt(blockPointer, position.position()));
+            position.incInteger();
         } else if (valueType == LONG_VALUE) {
-            value = klass.cast(blockReader.getLong(blockPointer, blockPosition));
-            blockPosition += Long.BYTES;
+            value = klass.cast(blockReader.getLong(blockPointer, position.position()));
+            position.incLong();
         } else if (valueType == STRING_VALUE) {
-            value = klass.cast(getStringFromByteBuffer());
+            value = klass.cast(getStringFromByteBuffer(position));
         } else if (valueType == FLOAT_VALUE) {
-            value = klass.cast(blockReader.getFloat(blockPointer, blockPosition));
-            blockPosition += Float.BYTES;
+            value = klass.cast(blockReader.getFloat(blockPointer, position.position()));
+            position.incFloat();
         } else if (valueType == DOUBLE_VALUE) {
-            value = klass.cast(blockReader.getDouble(blockPointer, blockPosition));
-            blockPosition += Double.BYTES;
+            value = klass.cast(blockReader.getDouble(blockPointer, position.position()));
+            position.incDouble();
         } else {
             throw new RuntimeException("Value type " + valueType + " is unknown.");
         }
         return value;
     }
 
-    protected void skipValueTypeAndValueInByteBuffer() {
-        byte valueType = blockReader.getByte(blockPointer, blockPosition);
-        blockPosition += Byte.BYTES;
+    protected void skipValueTypeAndValueInByteBuffer(SosByteBlockBufferPosition position) {
+        byte valueType = blockReader.getByte(blockPointer, position.position());
+        position.incByte();
         switch (valueType) {
             case BYTE_VALUE:
-                blockPosition += Byte.BYTES;
+                position.incByte();
                 break;
             case SHORT_VALUE:
-                blockPosition += Short.BYTES;
+                position.incShort();
                 break;
             case INTEGER_VALUE:
-                blockPosition += Integer.BYTES;
+                position.incInteger();
                 break;
             case LONG_VALUE:
-                blockPosition += Long.BYTES;
+                position.incLong();
                 break;
             case FLOAT_VALUE:
-                blockPosition += Float.BYTES;
+                position.incFloat();
                 break;
             case DOUBLE_VALUE:
-                blockPosition += Double.BYTES;
+                position.incDouble();
                 break;
             case MAP_VALUE:
             case LIST_VALUE:
-                skipMapOrListValueInByteBuffer();
+                skipMapOrListValueInByteBuffer(position);
                 break;
             case STRING_VALUE:
-                skipStringValueInByteBuffer();
+                skipStringValueInByteBuffer(position);
                 break;
             default:
                 throw new RuntimeException("Unknown value type " + valueType);
         }
     }
 
-    private void skipStringValueInByteBuffer() {
-        int stringLength = blockReader.getByte(blockPointer, blockPosition);
-        blockPosition += stringLength + Byte.BYTES;
+    private void skipStringValueInByteBuffer(SosByteBlockBufferPosition position) {
+        int stringLength = blockReader.getByte(blockPointer, position.position());
+        position.incByte();
+        position.addLength(stringLength);
     }
 
-    protected void skipMapOrListValueInByteBuffer() {
-        int mlLength = blockReader.getShort(blockPointer, blockPosition);
-        blockPosition += mlLength + Short.BYTES;
+    protected void skipMapOrListValueInByteBuffer(SosByteBlockBufferPosition position) {
+        int mlLength = blockReader.getShort(blockPointer, position.position());
+        position.incShort();
+        position.addLength(mlLength);
     }
 
-    protected String getStringFromByteBuffer() {
-        int length = blockReader.getByte(blockPointer, blockPosition);
-        blockPosition += Byte.BYTES;
-        byte[] bs = blockReader.getBytes(blockPointer, blockPosition, length);
-        blockPosition += length;
+    protected String getStringFromByteBuffer(SosByteBlockBufferPosition position) {
+        int length = blockReader.getByte(blockPointer, position.position());
+        position.incByte();
+        byte[] bs = blockReader.getBytes(blockPointer, position.position(), length);
+        position.addLength(length);
         return new String(bs, StandardCharsets.UTF_8);
     }
 

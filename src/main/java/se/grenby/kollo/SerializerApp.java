@@ -71,15 +71,9 @@ public class SerializerApp {
         System.out.println("In map -->" + bpo2.getStringValue("st3") + "<--");
 
         SosByteBlockBufferList bpl = sos.getListValue("list");
-        System.out.println("Has list -->" + bpl.hasNext() + "<--");
-        System.out.println("In list -->" + bpl.getNextByteValue() + "<--");
-        System.out.println("In list -->" + bpl.getNextShortValue() + "<--");
-        System.out.println("In list -->" + bpl.getNextIntValue() + "<--");
-        System.out.println("In list -->" + bpl.getNextStringValue() + "<--");
-        System.out.println("In list -->" + bpl.getNextLongValue() + "<--");
-        System.out.println("In list -->" + bpl.getNextFloatValue() + "<--");
-        System.out.println("In list -->" + bpl.getNextDoubleValue() + "<--");
-        System.out.println("Has list -->" + bpl.hasNext() + "<--");
+        for (Object o : bpl) {
+            System.out.println("In list -->" + o.toString() + "<--");
+        }
 
         System.out.println(memory.memStructureToString());
 
