@@ -54,7 +54,7 @@ public abstract class SosObject {
         return sb.toString();
     }
 
-    protected <T> T getValue(Class<T> klass, int valueType, SosPosition position) {
+    protected <T> T extractValue(Class<T> klass, int valueType, SosPosition position) {
         T value;
         if (valueType == BYTE_VALUE) {
             value = klass.cast(bufferReader.getByte(position.position()));

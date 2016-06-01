@@ -30,6 +30,8 @@ import se.grenby.kollo.sos.object.SosMap;
 import se.grenby.kollo.json.JsonDataList;
 import se.grenby.kollo.json.JsonDataMap;
 
+import java.util.Map;
+
 /**
  * Created by peteri on 27/11/15.
  */
@@ -66,8 +68,9 @@ public class SerializerApp {
         System.out.println("String -->" + sos.getStringValue("st") + "<--");
 
         SosMap bpo2 = sos.getMapValue("map");
-        System.out.println("In map -->" + bpo2.getStringValue("st2") + "<--");
-        System.out.println("In map -->" + bpo2.getStringValue("st3") + "<--");
+        for (Map.Entry<String, Object> e : bpo2) {
+            System.out.println("In map --> " + e.getValue() + "<--");
+        }
 
         SosList bpl = sos.getListValue("list");
         for (Object o : bpl) {

@@ -24,7 +24,6 @@
 package se.grenby.kollo.sos.object;
 
 import se.grenby.kollo.bbb.ByteBlockBufferReader;
-import se.grenby.kollo.json.JsonDataList;
 import se.grenby.kollo.sos.reader.ByteBlockBufferWrapperReader;
 import se.grenby.kollo.sos.reader.BufferReader;
 import se.grenby.kollo.json.JsonDataMap;
@@ -33,7 +32,6 @@ import se.grenby.kollo.sos.reader.ByteBufferWrapperReader;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import static se.grenby.kollo.sos.constant.SosConstants.*;
@@ -75,42 +73,42 @@ public class SosMap extends SosObject implements Iterable<Map.Entry<String, Obje
     }
 
     public SosMap getMapValue(String key) {
-        return getValue(key, SosMap.class);
+        return extractValueByKey(key, SosMap.class);
     }
 
     public SosList getListValue(String key) {
-        return getValue(key, SosList.class);
+        return extractValueByKey(key, SosList.class);
     }
 
     public byte getByteValue(String key) {
-        return getValue(key, Byte.class);
+        return extractValueByKey(key, Byte.class);
     }
 
     public short getShortValue(String key) {
-        return getValue(key, Short.class);
+        return extractValueByKey(key, Short.class);
     }
 
     public int getIntValue(String key) {
-        return getValue(key, Integer.class);
+        return extractValueByKey(key, Integer.class);
     }
 
     public long getLongValue(String key) {
-        return getValue(key, Long.class);
+        return extractValueByKey(key, Long.class);
     }
 
     public float getFloatValue(String key) {
-        return getValue(key, Float.class);
+        return extractValueByKey(key, Float.class);
     }
 
     public double getDoubleValue(String key) {
-        return getValue(key, Double.class);
+        return extractValueByKey(key, Double.class);
     }
 
     public String getStringValue(String key) {
-        return getValue(key, String.class);
+        return extractValueByKey(key, String.class);
     }
 
-    private <T> T getValue(String key, Class<T> klass) {
+    private <T> T extractValueByKey(String key, Class<T> klass) {
         T value = null;
         SosPosition position = new SosPosition(mapStartPosition);
 
@@ -125,7 +123,7 @@ public class SosMap extends SosObject implements Iterable<Map.Entry<String, Obje
                 } else if (valueType == LIST_VALUE) {
                     value = klass.cast(new SosList(bufferReader, valuePosition));
                 } else {
-                    value = getValue(klass, valueType, position);
+                    value = extractValue(klass, valueType, position);
                 }
                 break;
             } else {
@@ -141,7 +139,7 @@ public class SosMap extends SosObject implements Iterable<Map.Entry<String, Obje
         Map<String, Object> map = new HashMap<>();
 
         while (position.position() < mapStartPosition + mapTotalLength) {
-            SosMapEntry entry = getEntry(position);
+            SosMapEntry entry = extractEntry(position);
             String key = entry.getKey();
             Object value = entry.getValue();
 
@@ -157,7 +155,7 @@ public class SosMap extends SosObject implements Iterable<Map.Entry<String, Obje
         return new JsonDataMap(map);
     }
 
-    private SosMapEntry getEntry(SosPosition position) {
+    private SosMapEntry extractEntry(SosPosition position) {
         String mk = getStringFromByteBuffer(position);
         int valuePosition = position.position();
         int valueType = bufferReader.getByte(position.position());
@@ -173,19 +171,19 @@ public class SosMap extends SosObject implements Iterable<Map.Entry<String, Obje
             entry = new SosMapEntry(mk, cdl);
             skipMapOrListValueInByteBuffer(position);
         } else if (valueType == BYTE_VALUE) {
-            entry = new SosMapEntry(mk, getValue(Byte.class, valueType, position));
+            entry = new SosMapEntry(mk, extractValue(Byte.class, valueType, position));
         } else if (valueType == SHORT_VALUE) {
-            entry = new SosMapEntry(mk, getValue(Short.class, valueType, position));
+            entry = new SosMapEntry(mk, extractValue(Short.class, valueType, position));
         } else if (valueType == INTEGER_VALUE) {
-            entry = new SosMapEntry(mk, getValue(Integer.class, valueType, position));
+            entry = new SosMapEntry(mk, extractValue(Integer.class, valueType, position));
         } else if (valueType == LONG_VALUE) {
-            entry = new SosMapEntry(mk, getValue(Long.class, valueType, position));
+            entry = new SosMapEntry(mk, extractValue(Long.class, valueType, position));
         } else if (valueType == STRING_VALUE) {
-            entry = new SosMapEntry(mk, getValue(String.class, valueType, position));
+            entry = new SosMapEntry(mk, extractValue(String.class, valueType, position));
         } else if (valueType == FLOAT_VALUE) {
-            entry = new SosMapEntry(mk, getValue(Float.class, valueType, position));
+            entry = new SosMapEntry(mk, extractValue(Float.class, valueType, position));
         } else if (valueType == DOUBLE_VALUE) {
-            entry = new SosMapEntry(mk, getValue(Double.class, valueType, position));
+            entry = new SosMapEntry(mk, extractValue(Double.class, valueType, position));
         } else {
             throw new IllegalStateException(valueType + " is not a correct value type.");
         }
@@ -243,7 +241,7 @@ public class SosMap extends SosObject implements Iterable<Map.Entry<String, Obje
 
         @Override
         public Map.Entry<String, Object> next() {
-            return getEntry(position);
+            return extractEntry(position);
         }
 
         @Override

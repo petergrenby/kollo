@@ -58,7 +58,7 @@ public class SosList extends SosObject implements Iterable<Object> {
         }
     }
 
-    private Object getObject(SosPosition position) {
+    private Object extractObject(SosPosition position) {
         Object obj;
 
         int valuePosition = position.position();
@@ -71,19 +71,19 @@ public class SosList extends SosObject implements Iterable<Object> {
             obj = new SosList(bufferReader, valuePosition);
             skipMapOrListValueInByteBuffer(position);
         } else if (valueType == BYTE_VALUE) {
-            obj = getValue(Byte.class, valueType, position);
+            obj = extractValue(Byte.class, valueType, position);
         } else if (valueType == SHORT_VALUE) {
-            obj = getValue(Short.class, valueType, position);
+            obj = extractValue(Short.class, valueType, position);
         } else if (valueType == INTEGER_VALUE) {
-            obj = getValue(Integer.class, valueType, position);
+            obj = extractValue(Integer.class, valueType, position);
         } else if (valueType == LONG_VALUE) {
-            obj = getValue(Long.class, valueType, position);
+            obj = extractValue(Long.class, valueType, position);
         } else if (valueType == STRING_VALUE) {
-            obj = getValue(String.class, valueType, position);
+            obj = extractValue(String.class, valueType, position);
         } else if (valueType == FLOAT_VALUE) {
-            obj = getValue(Float.class, valueType, position);
+            obj = extractValue(Float.class, valueType, position);
         } else if (valueType == DOUBLE_VALUE) {
-            obj = getValue(Double.class, valueType, position);
+            obj = extractValue(Double.class, valueType, position);
         } else {
             throw new IllegalStateException(valueType + " is not a correct value type.");
         }
@@ -96,7 +96,7 @@ public class SosList extends SosObject implements Iterable<Object> {
         List<Object> list = new ArrayList<>();
 
         while (position.position() < listStartPosition + listTotalLength) {
-            Object obj = getObject(position);
+            Object obj = extractObject(position);
             if (obj instanceof SosList) {
                 obj = ((SosList) obj).extractJSonDataList();
             } else if (obj instanceof SosMap) {
@@ -131,7 +131,7 @@ public class SosList extends SosObject implements Iterable<Object> {
 
         @Override
         public Object next() {
-            return getObject(position);
+            return extractObject(position);
         }
 
         @Override
