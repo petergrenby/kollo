@@ -23,13 +23,14 @@
  */
 package se.grenby.kollo.bbb;
 
-import se.grenby.kollo.bbb.blockbuffer.ByteBlockBuffer;
-import se.grenby.kollo.util.BitUtil;
+import se.grenby.sos.util.BitUtil;
+import se.grenby.sos.bbb.ByteBlockBufferReader;
+import se.grenby.sos.bbb.ByteBlockBufferAllocator;
 
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 
-import static se.grenby.kollo.constant.PrimitiveConstants.INT_VALUE_FOR_NULL;
+import static se.grenby.sos.constant.PrimitiveConstants.INT_VALUE_FOR_NULL;
 
 /**
  * Created by peteri on 23/10/15.

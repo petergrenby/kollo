@@ -21,11 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.kollo.bbb.blockbuffer;
+package se.grenby.kollo.bbb;
 
 import java.nio.ByteBuffer;
 
-import static se.grenby.kollo.constant.PrimitiveConstants.INT_VALUE_FOR_NULL;
+import static se.grenby.sos.constant.PrimitiveConstants.INT_VALUE_FOR_NULL;
 /**
  * Created by peteri on 01/11/15.
  */

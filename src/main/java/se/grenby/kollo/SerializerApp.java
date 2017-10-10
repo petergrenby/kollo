@@ -24,11 +24,11 @@
 package se.grenby.kollo;
 
 import se.grenby.kollo.bbb.ByteBlockBufferManager;
-import se.grenby.kollo.sos.*;
-import se.grenby.kollo.sos.object.SosList;
-import se.grenby.kollo.sos.object.SosMap;
-import se.grenby.kollo.json.JsonDataList;
-import se.grenby.kollo.json.JsonDataMap;
+import se.grenby.sos.SosBuilder;
+import se.grenby.sos.object.SosList;
+import se.grenby.sos.object.SosMap;
+import se.grenby.sos.json.JsonDataList;
+import se.grenby.sos.json.JsonDataMap;
 
 import java.util.Map;
 

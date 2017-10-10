@@ -4,7 +4,7 @@
 
   <groupId>se.grenby</groupId>
   <artifactId>kollo</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.5</version>
   <packaging>jar</packaging>
 
   <name>kollo</name>
@@ -29,6 +29,13 @@
   </build>
 
   <dependencies>
+    <dependency>
+      <groupId>se.grenby</groupId>
+      <artifactId>sos</artifactId>
+      <version>0.5</version>
+      <scope>compile</scope>
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
