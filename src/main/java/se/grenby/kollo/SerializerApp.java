@@ -24,7 +24,7 @@
 package se.grenby.kollo;
 
 import se.grenby.kollo.bbb.ByteBlockBufferManager;
-import se.grenby.sos.SosBuilder;
+import se.grenby.sos.SosManager;
 import se.grenby.sos.object.SosList;
 import se.grenby.sos.object.SosMap;
 import se.grenby.sos.json.JsonDataList;
@@ -39,7 +39,6 @@ public class SerializerApp {
 
 
     public static void main(String[] args) {
-
         JsonDataMap jdm = new JsonDataMap();
         jdm.putByte("by", (byte) 64).putShort("sh", (short) 312).putInt("in", 45).putLong("lo", 76);
         jdm.putString("st", "ing").putFloat("fl", 36.4f).putDouble("do", 789.45436);
@@ -54,8 +53,9 @@ public class SerializerApp {
         jdm.putMap("map", jdm2);
 
         ByteBlockBufferManager memory = new ByteBlockBufferManager(1024*10);
-        int blockPointer = SosBuilder.buildSosByteBlockBuffer(memory, jdm);
-        SosMap sos = new SosMap(memory, blockPointer);
+        SosManager sosManager = new SosManager(memory);
+
+        SosMap sos = sosManager.createSosMap(jdm);
 
         System.out.println(sos.toString());
         System.out.println();
@@ -81,7 +81,7 @@ public class SerializerApp {
 
         JsonDataMap jdme = sos.extractJSonDataMap();
 
-        memory.deallocate(blockPointer);
+        sosManager.removeSosObject(sos);
 
         System.out.println("by -- > " + jdme.getByte("by"));
     }

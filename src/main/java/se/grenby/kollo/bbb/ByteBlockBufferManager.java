@@ -150,9 +150,9 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
         return pointer;
     }
 
-    public boolean deallocate(int blockPointer) {
+    public void deallocate(int blockPointer) {
         if (blockPointer == INT_VALUE_FOR_NULL) {
-            return false;
+            throw new RuntimeException("Block can not be deallocated: pointer " + blockPointer);
         }
 
         int sizeOfBlock = blockBuffer.getBlockSize(blockPointer);
@@ -183,9 +183,8 @@ public class ByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlo
             numberOfAllocatedBlocks--;
             totalSizeOfAllocatedBlocks -= sizeOfBlock;
 
-            return true;
         } else {
-            return false;
+            throw new RuntimeException("Block can not be deallocated: pointer " + blockPointer);
         }
     }
 

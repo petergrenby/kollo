@@ -67,8 +67,7 @@ public class ByteBlockBufferManagerTest {
         assertTrue("Integrity of memory management and/or byte block blockbuffer has been compromised", bbbm.verfiyIntegrity());
 
 
-        boolean res = bbbm.deallocate(p1);
-        assertTrue("Deallocation was unsuccessful", res);
+        bbbm.deallocate(p1);
         assertEquals("Available space to manager is not correct after allocation", orginalSpace, bbbm.getTotalAvailableSpace());
         assertTrue("Integrity of memory management and/or byte block blockbuffer has been compromised", bbbm.verfiyIntegrity());
     }
@@ -111,8 +110,7 @@ public class ByteBlockBufferManagerTest {
         int c = 0;
         for (Iterator<Integer> it = pointers.iterator(); it.hasNext() & (c < 1000); c++) {
             int p = it.next();
-            boolean r = bbbm.deallocate(p);
-            assertTrue("Deallocation was unsuccessful", r);
+            bbbm.deallocate(p);
             assertTrue("Integrity of memory management and/or byte block blockbuffer has been compromised", bbbm.verfiyIntegrity());
             it.remove();
         }
@@ -128,8 +126,7 @@ public class ByteBlockBufferManagerTest {
         }
 
         for (int p : pointers) {
-            boolean r = bbbm.deallocate(p);
-            assertTrue("Deallocation was unsuccessful", r);
+            bbbm.deallocate(p);
             assertTrue("Integrity of memory management and/or byte block blockbuffer has been compromised", bbbm.verfiyIntegrity());
         }
     }
